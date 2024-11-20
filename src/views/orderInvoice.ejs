@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Invoice</title>
+
+    <style type="text/css">
+      .container {
+        max-width: 850px;
+        margin: 20px auto;
+        padding: 30px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+      }
+      .container .header {
+        width: 100%;
+        display: flex;
+        margin-bottom: 20px;
+      }
+      .container .header .header__left {
+        margin: 0 auto;
+        margin-left: 0;
+      }
+      .container .header .header__left img {
+        width: 250px;
+      }
+      .container .header .header__right {
+        margin: 0 auto;
+        margin-right: 0;
+      }
+      .container .header .header__right h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: bold;
+      }
+      .container .date {
+        width: 100%;
+        border-top: 1px solid rgb(216, 216, 216);
+        border-bottom: 1px solid rgb(216, 216, 216);
+        display: flex;
+        padding: 5px 0;
+      }
+      .container .date .date__left {
+        margin: 0 auto;
+        margin-left: 0;
+      }
+      .container .date .date__right {
+        margin: 0 auto;
+        margin-right: 0;
+      }
+
+      .container .address__container {
+        display: flex;
+        margin: 20px 0;
+      }
+      .container .address__container .address__container__left,
+      .container .address__container .address__container__right {
+        margin: 0 auto;
+      }
+      .container .address__container .address__container__left {
+        margin-left: 0;
+      }
+      .container .address__container .address__container__right {
+        margin-right: 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      table thead tr .th__1,
+      table thead tr .th__2 {
+        padding: 10px;
+        border: 1px solid #ddd;
+        background-color: #f4f4f4;
+      }
+      table thead tr .th__1 {
+        text-align: left;
+      }
+      table thead tr .th__2 {
+        text-align: right;
+      }
+    </style>
+  </head>
+
+  <body
+    style="
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    "
+  >
+    <div class="container">
+      <div class="header">
+        <div class="header__left">
+          <img
+            src="https://res.cloudinary.com/dq7wrwmig/image/upload/v1726317138/churchlogo_kipcc6.png"
+            alt="church_logo"
+          />
+        </div>
+        <div class="header__right"><h1>Invoice</h1></div>
+      </div>
+
+      <div class="date">
+        <div class="date__left">
+          <p><strong>Date:</strong> <%= date %></p>
+        </div>
+        <div class="date__right">
+          <p>Invoice Id: <strong><%= invoiceId %></strong></p>
+        </div>
+      </div>
+
+      <div class="address__container">
+        <div class="address__container__left">
+          <p style="text-transform: capitalize">
+            <strong>Invoice Type: <%= type %></strong>
+          </p>
+          <p><strong>Invoiced To:</strong></p>
+          <p>Name: <%= name %></p>
+          <p>Email: <%= email %></p>
+          <p>Phone: <%= phone %></p>
+          <p>Country: <%= country %></p>
+        </div>
+        <div class="address__container__right">
+          <!-- <p>Transaction ID: <strong>16835</strong></p> -->
+          <p>Order ID: <strong><%= orderId %></strong></p>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 5px; font-size: 18px">
+        <strong><%= packageTitle %></strong>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="th__1">Custom items</th>
+            <th class="th__2">Price</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% items.forEach(function(item) { %>
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 10px">
+              <%= item.label %>
+            </td>
+            <td
+              style="border: 1px solid #ddd; padding: 10px; text-align: right"
+            >
+              $<%= item.price %>
+            </td>
+          </tr>
+          <% }) %>
+          <tr>
+            <td></td>
+            <td style="text-align: right">
+              <p
+                style="
+                  padding: 0;
+                  padding-top: 5px;
+                  padding-bottom: 5px;
+                  margin: 0;
+                  font-size: 14px;
+                  text-align: right;
+                "
+              >
+                <span style="font-size: 16px; color: #888; font-weight: 700"
+                  >Subtotal:
+                </span>
+                <span><strong>$<%= (subtotal).toFixed(2) %></strong></span>
+              </p>
+              <p
+                style="
+                  padding: 0;
+                  padding-bottom: 5px;
+                  margin: 0;
+                  font-size: 14px;
+                  text-align: right;
+                "
+              >
+                <span style="font-size: 16px; color: #888; font-weight: 700"
+                  >Package price:
+                </span>
+                <span><strong>$<%= packagePrice %></strong></span>
+              </p>
+              <p
+                style="
+                  padding: 0;
+                  margin: 0;
+                  font-size: 14px;
+                  text-align: right;
+                "
+              >
+                <span style="font-size: 16px; color: #888; font-weight: 700"
+                  >Total:
+                </span>
+                <span><strong>$<%= total %></strong></span>
+              </p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p
+        style="
+          font-size: 12px;
+          text-align: center;
+          color: #888;
+          margin-top: 20px;
+        "
+      >
+        NOTE: This is a computer-generated receipt and does not require a
+        physical signature.
+      </p>
+    </div>
+  </body>
+</html>

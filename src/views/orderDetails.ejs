@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Order Details</title>
+    <style type="text/css">
+      .container {
+        max-width: 850px;
+        margin: 20px auto;
+        padding: 30px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+      }
+      .container .header {
+        width: 100%;
+        display: flex;
+        margin-bottom: 20px;
+      }
+      .container .header .header__left {
+        margin: 0 auto;
+        margin-left: 0;
+      }
+      .container .header .header__left img {
+        width: 250px;
+      }
+      .container .header .header__right {
+        margin: 0 auto;
+        margin-right: 0;
+      }
+      .container .header .header__right h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: bold;
+      }
+      .container .date {
+        width: 100%;
+        border-top: 1px solid rgb(216, 216, 216);
+        border-bottom: 1px solid rgb(216, 216, 216);
+        display: flex;
+        padding: 5px 0;
+      }
+      .container .date .date__left {
+        margin: 0 auto;
+        margin-left: 0;
+      }
+      .container .date .date__right {
+        margin: 0 auto;
+        margin-right: 0;
+      }
+
+      .container .address__container {
+        display: flex;
+        margin: 20px 0;
+      }
+      .container .address__container .address__container__left,
+      .container .address__container .address__container__right {
+        margin: 0 auto;
+      }
+      .container .address__container .address__container__left {
+        margin-left: 0;
+      }
+      .container .address__container .address__container__right {
+        margin-right: 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      table thead tr .th__1,
+      table thead tr .th__2 {
+        padding: 10px;
+        border: 1px solid #ddd;
+        background-color: #f4f4f4;
+      }
+      table thead tr .th__1 {
+        text-align: left;
+      }
+      table thead tr .th__2 {
+        text-align: right;
+      }
+    </style>
+  </head>
+
+  <body
+    style="
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    "
+  >
+    <div class="container">
+      <div class="header">
+        <div class="header__left">
+          <img
+            src="https://res.cloudinary.com/dq7wrwmig/image/upload/v1726317138/churchlogo_kipcc6.png"
+            alt="church_logo"
+          />
+        </div>
+        <div class="header__right"><h1>Details</h1></div>
+      </div>
+
+      <div class="date">
+        <div class="date__left">
+          <p><strong>Date:</strong> <%= orderDateString %></p>
+        </div>
+        <div class="date__right">
+          <p>Invoice No: <strong>16835</strong></p>
+        </div>
+      </div>
+
+      <div class="address__container">
+        <div class="address__container__left">
+          <p><strong>Invoiced To:</strong></p>
+          <p>
+            Name: <%= contactDetails?.firstName %> <%= contactDetails?.lastName
+            %>
+          </p>
+          <p>Email: <%= email %></p>
+          <p>Phone: <%= contactDetails.phone %></p>
+          <p>Country: <%= contactDetails.country %></p>
+        </div>
+        <div class="address__container__right">
+          <!-- <p>Transaction ID: <strong>16835</strong></p> -->
+          <p>Order ID: <strong><%= orderId %></strong></p>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 5px; font-size: 18px">
+        <strong><%= package.title %> - $<%= packagePrice %></strong>
+      </div>
+
+      <% if ([...additionalFeature, ...additionalRevision,
+      ...additionalDeliveryTime].length > 0) { %>
+      <table>
+        <thead>
+          <tr>
+            <th class="th__1">Items</th>
+            <th class="th__2">Price</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% [...additionalFeature, ...additionalRevision,
+          ...additionalDeliveryTime].forEach(function(item) { %>
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 10px">
+              <%= item.label %>
+            </td>
+            <td
+              style="border: 1px solid #ddd; padding: 10px; text-align: right"
+            >
+              $<%= item.price %>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <% } %>
+
+      <div style="margin-bottom: 20px">
+        <p style="font-size: 18px">
+          <strong>Total:</strong> $<%= totalPrice %>
+        </p>
+      </div>
+
+      <div style="margin-bottom: 20px">
+        <p style="font-size: 18px; margin-bottom: 10px">
+          <strong>Requirements</strong>
+        </p>
+        <div>
+          <% requirements.forEach(function(item, index) { %>
+          <p><%= index + 1 %>. <%= item.question %></p>
+          <p style="margin-top: -5px">
+            <strong>Answer:</strong> <%= item.answer %>
+          </p>
+          <% }) %>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px">
+        <p style="font-size: 18px; margin-bottom: 10px">
+          <strong>Preferred designs</strong>
+        </p>
+        <div>
+          <% preferredDesigns.forEach(function(item) { %>
+          <div style="width: fit-content">
+            <img
+              style="width: 250px; margin-bottom: 5px"
+              src="<%= item.secureUrl %>"
+              alt="church_logo"
+            />
+            <% }) %>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px">
+        <p style="font-size: 18px; margin-bottom: 10px">
+          <strong>Preferred colors</strong>
+        </p>
+        <div>
+          <% preferredColors.forEach(function(item) { %>
+          <div style="width: fit-content">
+            <img
+              style="width: 250px; margin-bottom: 5px"
+              src="<%= item.secureUrl %>"
+              alt="church_logo"
+            />
+            <% }) %>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px">
+        <p style="font-size: 18px; margin-bottom: 10px">
+          <strong>Referred Images</strong>
+        </p>
+        <div>
+          <% referredImages.forEach(function(item) { %>
+          <div style="width: fit-content">
+            <img
+              style="width: 250px; margin-bottom: 5px"
+              src="<%= item.secureUrl %>"
+              alt="church_logo"
+            />
+            <% }) %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
