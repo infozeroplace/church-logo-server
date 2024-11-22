@@ -3,6 +3,20 @@ import { SystemService } from "../../service/private/system.services.js";
 import catchAsync from "../../shared/catchAsync.js";
 import sendResponse from "../../shared/sendResponse.js";
 
+const updateAboutUsSettings = catchAsync(async (req, res) => {
+  const { ...data } = req.body;
+
+  const result = await SystemService.updateAboutUsSettings(data);
+
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Updated successfully!",
+    meta: null,
+    data: result,
+  });
+});
+
 const updateLogo = catchAsync(async (req, res) => {
   const { ...data } = req.body;
 
@@ -357,6 +371,7 @@ const updatePrivacyPolicy = catchAsync(async (req, res) => {
 });
 
 export const SystemController = {
+  updateAboutUsSettings,
   updateLogo,
   updatePackageOfferPercentages,
   updateContactUsThumbnail,
