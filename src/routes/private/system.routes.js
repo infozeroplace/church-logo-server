@@ -14,6 +14,12 @@ import { SystemValidation } from "../../validation/system.validation.js";
 const router = express.Router();
 
 router.put(
+  "/system/update-contact-us-settings",
+  auth(ENUM_USER_ROLE.SUPER_ADMIN),
+  SystemController.updateContactUsSettings
+);
+
+router.put(
   "/system/update-about-us-settings",
   auth(ENUM_USER_ROLE.SUPER_ADMIN),
   SystemController.updateAboutUsSettings

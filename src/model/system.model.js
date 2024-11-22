@@ -99,6 +99,13 @@ const SystemSchema = Schema(
       paragraph4: String,
       points: Array,
     },
+    contactUsSettings: {
+      title1: String,
+      title2: String,
+      paragraph: String,
+      thumbnail: String,
+      background: String,
+    },
     faqThumbnail: String,
     contactUsThumbnail: String,
     logo: String,

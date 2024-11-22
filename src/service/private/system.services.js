@@ -3,6 +3,34 @@ import ApiError from "../../error/ApiError.js";
 import cloudinary from "../../middleware/cloudinary.js";
 import { System } from "../../model/system.model.js";
 
+const updateContactUsSettings = async (payload) => {
+  const existing = await System.findOne({
+    systemId: "system-1",
+  });
+  if (!existing) {
+    const result = await System.create({
+      systemId: "system-1",
+      contactUsSettings: payload,
+    });
+    if (!result)
+      throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+    return result;
+  } else {
+    const result = await System.findOneAndUpdate(
+      {
+        systemId: "system-1",
+      },
+      {
+        $set: { contactUsSettings: payload },
+      },
+      { new: true }
+    );
+    if (!result)
+      throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+    return result;
+  }
+};
+
 const updateAboutUsSettings = async (payload) => {
   const existing = await System.findOne({
     systemId: "system-1",
@@ -1115,6 +1143,7 @@ const updatePrivacyPolicy = async (payload) => {
 };
 
 export const SystemService = {
+  updateContactUsSettings,
   updateAboutUsSettings,
   updateLogo,
   updatePackageOfferPercentages,
