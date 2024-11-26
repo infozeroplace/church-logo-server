@@ -36,6 +36,7 @@ const verifyEmail = async (payload, userId) => {
   const { email } = payload;
 
   const isUserExist = await User.findOne({ userId });
+  const name = `${isUserExist.firstName} ${isUserExist.lastName}`;
 
   if (email !== isUserExist?.email)
     throw new ApiError(httpStatus.BAD_REQUEST, "Email doesn't match");
@@ -58,7 +59,7 @@ const verifyEmail = async (payload, userId) => {
   );
 
   if (updatedUser.resetToken) {
-    await sendEmailVerificationLink(email, accessToken);
+    await sendEmailVerificationLink(email, name, accessToken);
   } else {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,

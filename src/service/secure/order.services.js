@@ -13,11 +13,9 @@ import {
 } from "../../model/order.model.js";
 import { Package } from "../../model/package.model.js";
 import { Review } from "../../model/review.model.js";
+import { System } from "../../model/system.model.js";
 import User from "../../model/user.model.js";
-import {
-  sendOrderDetailsToAdmin,
-  sendOrderInvoiceToCustomer,
-} from "../../shared/nodeMailer.js";
+import { sendOrderInvoiceToCustomer } from "../../shared/nodeMailer.js";
 import calculateAdditionalItemPrice from "../../utils/calculateAdditionalItemPrice.js";
 import calculateDeliveryDate from "../../utils/calculateDeliveryDate.js";
 import calculateRevisionCount from "../../utils/calculateRevisionCount.js";
@@ -864,13 +862,27 @@ const orderSubmission = async (payload, userId) => {
     }
   );
 
+  const systemData = await System.findOne({ systemId: "system-1" });
+
   if (createdOrder?.additionalEmail !== createdOrder?.email) {
-    await sendOrderInvoiceToCustomer(newInvoice, createdOrder?.email);
-    await sendOrderInvoiceToCustomer(newInvoice, createdOrder?.additionalEmail);
+    await sendOrderInvoiceToCustomer(
+      newInvoice,
+      createdOrder?.email,
+      systemData.logo
+    );
+    await sendOrderInvoiceToCustomer(
+      newInvoice,
+      createdOrder?.additionalEmail,
+      systemData.logo
+    );
   }
 
-  await sendOrderInvoiceToCustomer(newInvoice, createdOrder?.email);
-  await sendOrderDetailsToAdmin(createdOrder);
+  await sendOrderInvoiceToCustomer(
+    newInvoice,
+    createdOrder?.email,
+    systemData.logo
+  );
+  // await sendOrderDetailsToAdmin(createdOrder);
 
   return createdOrder;
 };

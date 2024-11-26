@@ -23,6 +23,7 @@ const auth =
       }
 
       const user = await User.findOne({ userId: verifiedUser.userId });
+
       if (user && user.role === "user" && user.blockStatus) {
         throw new ApiError(httpStatus.FORBIDDEN, "You've been blocked!");
       }

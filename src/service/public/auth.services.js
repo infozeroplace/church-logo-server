@@ -9,6 +9,7 @@ import { Conversation, Message } from "../../model/chat.model.js";
 import User from "../../model/user.model.js";
 import {
   sendAdminForgotPasswordLink,
+  sendEmailVerificationLink,
   sendForgotPasswordLink,
 } from "../../shared/nodeMailer.js";
 import { generateUserId } from "../../utils/generateUserId.js";
@@ -106,11 +107,13 @@ const forgotPassword = async (payload) => {
     { new: true }
   );
 
+  const name = `${updatedUser.firstName} ${updatedUser.lastName}`;
+
   if (updatedUser.resetToken) {
     if (updatedUser.role !== "admin" && updatedUser.role !== "super_admin") {
-      await sendForgotPasswordLink(email, accessToken);
+      await sendForgotPasswordLink(email, name, accessToken);
     } else {
-      await sendAdminForgotPasswordLink(email, accessToken);
+      await sendAdminForgotPasswordLink(email, name, accessToken);
     }
   } else {
     throw new ApiError(
@@ -164,9 +167,6 @@ const register = async (payload) => {
     }
   );
 
-  // Remove the password
-  createdUser.password = undefined;
-
   // Create access token
   const accessToken = jwtHelpers.createToken(
     {
@@ -191,6 +191,32 @@ const register = async (payload) => {
     config?.jwt?.refresh_expires_in
   );
 
+  const emailAccessToken = jwtHelpers.createToken(
+    {
+      role: createdUser?.role,
+      userId: createdUser?.userId,
+      email: createdUser?.email,
+      blockStatus: createdUser?.blockStatus,
+    },
+    config?.jwt?.secret,
+    config?.jwt?.email_expires_in
+  );
+
+  const updatedUser = await User.findOneAndUpdate(
+    { email: createdUser?.email },
+    { resetToken: emailAccessToken },
+    { new: true }
+  );
+
+  const name = `${updatedUser.firstName} ${updatedUser.lastName}`;
+
+  if (updatedUser.resetToken) {
+    await sendEmailVerificationLink(createdUser?.email, name, emailAccessToken);
+  }
+
+  // Remove the password
+  createdUser.password = undefined;
+
   return {
     accessToken,
     refreshToken,
@@ -202,6 +228,7 @@ const login = async (payload) => {
   const { email, password } = payload;
   const isUserExistWithoutLean = await User.findOne({ email });
   const isUserExist = await User.findOne({ email }).lean();
+
   if (!isUserExist) {
     throw new ApiError(httpStatus.BAD_REQUEST, "User does not exist");
   }
@@ -225,8 +252,6 @@ const login = async (payload) => {
     creator: isUserExist._id,
   });
 
-  // Remove the password
-  isUserExist.password = undefined;
   if (existingConversation) {
     isUserExist.conversationId = existingConversation._id;
   }
@@ -254,6 +279,9 @@ const login = async (payload) => {
     config?.jwt?.refresh_secret,
     config?.jwt?.refresh_expires_in
   );
+
+  // Remove the password
+  isUserExist.password = undefined;
 
   return {
     accessToken,
@@ -283,9 +311,6 @@ const adminLogin = async (payload) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid ID or password!");
   }
 
-  // Remove the password
-  isUserExist.password = undefined;
-
   // Create access token
   const accessToken = jwtHelpers.createToken(
     {
@@ -309,6 +334,9 @@ const adminLogin = async (payload) => {
     config?.jwt?.refresh_secret,
     config?.jwt?.refresh_expires_in
   );
+
+  // Remove the password
+  isUserExist.password = undefined;
 
   return {
     accessToken,
@@ -386,11 +414,12 @@ const googleLogin = async (code) => {
       creator: isUserExists._id,
     });
 
-    // Remove the password
-    isUserExists.password = undefined;
     if (existingConversation) {
       isUserExists.conversationId = existingConversation._id;
     }
+
+    // Remove the password
+    isUserExists.password = undefined;
 
     return {
       accessToken,

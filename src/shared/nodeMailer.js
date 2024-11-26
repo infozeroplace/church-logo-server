@@ -10,13 +10,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
-  tls: {
-    rejectUnauthorized: false,
-  },
+  host: "churchlogo.co",
+  port: 587,
+  secure: false,
   auth: {
     user: config.support_mail_address,
     pass: config.nodemailer_pass,
+  },
+  tls: {
+    rejectUnauthorized: false,
   },
 });
 
@@ -31,8 +33,8 @@ export const sendOrderDetailsToAdmin = async (order) => {
       console.log(err);
     } else {
       const mailOptions = {
-        from: "churchlogo.info@gmail.com",
-        to: "churchlogo.info@gmail.com",
+        from: config.support_mail_address,
+        to: config.support_mail_address,
         subject: "Order Details",
         html: template,
       };
@@ -49,10 +51,11 @@ export const sendOrderDetailsToAdmin = async (order) => {
   });
 };
 
-export const sendOrderInvoiceToCustomer = async (invoice, email) => {
+export const sendOrderInvoiceToCustomer = async (invoice, email, logo) => {
   const templatePath = path.join(__dirname, "../views/orderInvoice.ejs");
   const newInvoice = {
     ...invoice,
+    logo,
   };
 
   ejs.renderFile(templatePath, newInvoice, async (err, template) => {
@@ -60,7 +63,7 @@ export const sendOrderInvoiceToCustomer = async (invoice, email) => {
       console.log(err);
     } else {
       const mailOptions = {
-        from: "churchlogo.info@gmail.com",
+        from: `"ChurchLogo" <${config.invoice_mail_address}>`,
         to: email,
         subject: "Invoice",
         html: template,
@@ -78,46 +81,64 @@ export const sendOrderInvoiceToCustomer = async (invoice, email) => {
   });
 };
 
-export const sendEmailVerificationLink = async (email, token) => {
+export const sendEmailVerificationLink = async (email, name, token) => {
   const mailOptions = {
-    from: "churchlogo.info@gmail.com",
+    from: `"ChurchLogo" <${config.support_mail_address}>`,
     to: email,
     subject: "Email Verification",
-    html: `<div style="width: 100%; padding: 20px 10px; font-size: 18px; font-weight: 400">
-        <div style="width: 100%">
-        <h3>Hello, ${email}:</h3>
+    html: `<div style="width: 100%; padding: 20px; font-size: 16px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <h3>Dear ${name},</h3>
+  <p>
+    Thank you for joining Church Logo! To complete your registration and activate your account, 
+    please verify your email address by clicking the link below <strong style="font-weight: 700;">within 15 minutes</strong>:
+  </p>
 
-        <p style="width: 100%; margin: 30px 0px">
-          Please click on the link below <span  style="font-weight: 900">within 24 hours</span> to verify your Church Logo account.
-        </p>
+  <p style="margin: 30px 0;">
+    <a 
+      href="${config.frontend_base_url}/verify-email/${token}" 
+      target="_blank" 
+      style="
+        padding: 12px 24px;
+        background-color: #348edb;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 5px;
+        display: inline-block;
+      "
+    >
+      Verify Email Address
+    </a>
+  </p>
 
-        <p style="width: 100%">
-            <a
-              target="_blank"
-              href="${config.frontend_base_url}/verify-email/${token}"
-              style="
-                padding: 12px 8px;
-                background-color: #348edb;
-                color: #ffff;
-                cursor: pointer;
-                text-decoration: none;
-              "
-              >Verify Email Address</a
-            >
-        </p>
+  <p>
+    Verifying your email ensures you have uninterrupted access to your account and our exclusive member features.
+  </p>
 
-        <p style="width: 100%; margin: 30px 0px">
-          After clicking you will be redirected to a verification screen.
-        </p>
-        </div>
-        
-        <p>Good Day,</p>
+  <p>
+    If you encounter any issues or have questions, please don't hesitate to contact us at 
+    <a href="mailto:${config.support_mail_address}" style="color: #348edb; text-decoration: none;">${config.support_mail_address}</a>.
+  </p>
 
-        <div style="margin: 30px 0px">
-        <p>The Church Logo Support Team</p>
-        <a target="_blank" href=${config.frontend_base_url}>${config.frontend_base_url}</a>
-        </div>
-      </div>`,
+  <p>
+    We’re glad to have you on board and look forward to serving you.
+  </p>
+
+  <p style="margin: 40px 0 0;">
+    Warm regards, <br />
+    <strong>The Church Logo Support Team</strong>
+  </p>
+
+  <footer style="margin-top: 40px; font-size: 14px; color: #777;">
+    <a 
+      href="${config.frontend_base_url}" 
+      target="_blank" 
+      style="color: #348edb; text-decoration: none; font-weight: bold;"
+    >
+      www.churchlogo.co
+    </a>
+  </footer>
+</div>`,
   };
 
   try {
@@ -131,44 +152,71 @@ export const sendEmailVerificationLink = async (email, token) => {
   }
 };
 
-export const sendForgotPasswordLink = async (email, token) => {
+export const sendForgotPasswordLink = async (email, name, token) => {
   const mailOptions = {
-    from: "churchlogo.info@gmail.com",
+    from: `"ChurchLogo" <${config.support_mail_address}>`,
     to: email,
-    subject: "Forgot password",
-    html: `<div style="width: 100%; padding: 20px 10px; font-size: 18px; font-weight: 400">
-        <div style="width: 100%">
-        <h3>Hello, ${email}:</h3>
+    subject: "Reset Your Church Logo Password",
+    html: `
+      <div style="width: 100%; padding: 20px 10px; font-size: 18px; font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+        <h3>Hello, ${name},</h3>
 
-        <p style="width: 100%; margin: 30px 0px">
-          Please click on the link below <span  style="font-weight: 900">within 24 hours</span> to reset your Church Logo password
+        <p>
+          We received a request to reset your Church Logo account password. Please click the link below 
+          <strong style="font-weight: 900;">within 15 minutes</strong> to reset your password:
         </p>
 
-        <p style="width: 100%">
-            <a
-              target="_blank"
-              href="${config.frontend_base_url}/reset-password/${token}"
-              style="
-                padding: 12px 8px;
-                background-color: #348edb;
-                color: #ffff;
-                cursor: pointer;
-                text-decoration: none;
-              "
-              >Reset your Password</a
+        <p style="margin: 30px 0;">
+          <a 
+            href="${config.frontend_base_url}/reset-password/${token}" 
+            target="_blank" 
+            style="
+              padding: 12px 24px;
+              background-color: #348edb;
+              color: #ffffff;
+              text-decoration: none;
+              font-weight: bold;
+              border-radius: 5px;
+            "
+          >
+            Reset Your Password
+          </a>
+        </p>
+
+        <p>
+          If you didn’t request this password reset, you can safely ignore this email. Your password will remain unchanged.
+        </p>
+
+        <p>
+          Once your password is reset, you’ll be signed in and can access the member-only area.
+        </p>
+
+        <p style="margin: 40px 0 0;">
+          Best regards, <br />
+          <strong>The Church Logo Support Team</strong>
+        </p>
+
+        <footer style="margin-top: 40px; font-size: 14px; color: #777;">
+            <p style="margin: 0;">For further assistance, contact us at:</p>
+            <a 
+              href="mailto:contact@churchlogo.co" 
+              target="_blank" 
+              style="color: #348edb; text-decoration: none; font-weight: bold;"
             >
-        </p>
-
-        <p style="width: 100%; margin: 30px 0px">
-          Once you reset your password, you will be signed in and able to enter the member-only area you tried to access.
-        </p>
-        </div>
-
-        <div style="margin: 30px 0px">
-        <p>The Church Logo Support Team</p>
-        <a target="_blank" href=${config.frontend_base_url}>${config.frontend_base_url}</a>
-        </div>
-      </div>`,
+              support@churchlogo.co
+            </a>
+            <p style="margin: 10px 0 0;">
+              <a 
+                href="${config.frontend_base_url}" 
+                target="_blank" 
+                style="color: #348edb; text-decoration: none;"
+              >
+                www.churchlogo.co
+              </a>
+            </p>
+        </footer>
+      </div>
+    `,
   };
 
   try {
@@ -177,49 +225,62 @@ export const sendForgotPasswordLink = async (email, token) => {
   } catch (error) {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,
-      "Internal Server Error"
+      "Failed to send reset password email"
     );
   }
 };
 
-export const sendAdminForgotPasswordLink = async (email, token) => {
+
+export const sendAdminForgotPasswordLink = async (email, name, token) => {
   const mailOptions = {
-    from: "churchlogo.info@gmail.com",
+    from: `"ChurchLogo" <${config.support_mail_address}>`,
     to: email,
-    subject: "Forgot password",
-    html: `<div style="width: 100%; padding: 20px 10px; font-size: 18px; font-weight: 400">
-        <div style="width: 100%">
-        <h3>Hello, ${email}:</h3>
-
-        <p style="width: 100%; margin: 30px 0px">
-          Please click on the link below <span  style="font-weight: 900">within 24 hours</span> to reset your Church Logo password
+    subject: "Reset Your Admin Password - Church Logo Dashboard",
+    html: `
+      <div style="width: 100%; padding: 20px; font-size: 16px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h3>Dear ${name},</h3>
+        <p>
+          We received a request to reset your password for the Church Logo Admin Dashboard.
+          If you made this request, please click the link below <strong>within 24 hours</strong> to reset your password securely:
         </p>
 
-        <p style="width: 100%">
-            <a
-              target="_blank"
-              href="${config.admin_frontend_base_url}/reset-password/${token}"
-              style="
-                padding: 12px 8px;
-                background-color: #348edb;
-                color: #ffff;
-                cursor: pointer;
-                text-decoration: none;
-              "
-              >Reset your Password</a
-            >
+        <p style="margin: 30px 0;">
+          <a
+            href="${config.admin_frontend_base_url}/reset-password/${token}"
+            target="_blank"
+            style="
+              padding: 12px 24px;
+              background-color: #348edb;
+              color: #ffffff;
+              text-decoration: none;
+              font-weight: bold;
+              border-radius: 5px;
+              display: inline-block;
+            "
+          >
+            Reset Your Password
+          </a>
         </p>
 
-        <p style="width: 100%; margin: 30px 0px">
-          Once you reset your password, you will be signed in and able to enter the member-only area you tried to access.
+        <p>
+          If you did not make this request, please contact support immediately. For security purposes, this link will expire after 15 minutes.
         </p>
-        </div>
+        <p>Once your password is reset, you will be signed in and able to access the Admin Dashboard.</p>
 
-        <div style="margin: 30px 0px">
-        <p>The Church Logo Support Team</p>
-        <a target="_blank" href=${config.admin_frontend_base_url}>${config.admin_frontend_base_url}</a>
-        </div>
-      </div>`,
+        <p>Warm regards,</p>
+        <p><strong>The Church Logo Support Team</strong></p>
+
+        <footer style="margin-top: 40px; font-size: 14px; color: #777;">
+          <a
+            href="${config.admin_frontend_base_url}"
+            target="_blank"
+            style="color: #348edb; text-decoration: none; font-weight: bold;"
+          >
+            www.admin.churchlogo.co
+          </a>
+        </footer>
+      </div>
+    `,
   };
 
   try {
@@ -232,3 +293,4 @@ export const sendAdminForgotPasswordLink = async (email, token) => {
     );
   }
 };
+

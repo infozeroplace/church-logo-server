@@ -25,6 +25,19 @@ const config = {
       ? process.env.PRODUCTION_ADMIN_FRONTEND_BASE_URL
       : process.env.DEVELOPMENT_ADMIN_FRONTEND_BASE_URL_DEV,
 
+  origins:
+    process.env.NODE_ENV === "production"
+      ? [
+          process.env.PRODUCTION_FRONTEND_BASE_URL,
+          process.env.PRODUCTION_ADMIN_FRONTEND_BASE_URL,
+          process.env.PRODUCTION_FRONTEND_BASE_URL_WWW,
+          process.env.PRODUCTION_ADMIN_FRONTEND_BASE_URL_WWW,
+        ]
+      : [
+          process.env.DEVELOPMENT_FRONTEND_BASE_URL_DEV,
+          process.env.DEVELOPMENT_ADMIN_FRONTEND_BASE_URL_DEV,
+        ],
+
   bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
 
   jwt: {
@@ -38,7 +51,12 @@ const config = {
   refresh_token_name: process.env.REFRESH_TOKEN_NAME,
   refresh_token_domain: process.env.REFRESH_TOKEN_DOMAIN,
 
+  info_mail_address: process.env.INFO_MAIL_ADDRESS,
   support_mail_address: process.env.SUPPORT_MAIL_ADDRESS,
+  invoice_mail_address: process.env.INVOICE_MAIL_ADDRESS,
+  contact_mail_address: process.env.CONTACT_MAIL_ADDRESS,
+  payment_mail_address: process.env.PAYMENT_MAIL_ADDRESS,
+  service_mail_address: process.env.SERVICE_MAIL_ADDRESS,
   nodemailer_pass: process.env.NODEMAILER_PASS,
 
   google_client_id: process.env.GOOGLE_CLIENT_ID,
