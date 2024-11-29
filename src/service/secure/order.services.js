@@ -719,6 +719,7 @@ const orderSubmission = async (payload, userId) => {
     userId: givenUserId,
     packageId,
     category,
+    transactionId,
     contactDetails,
     additionalEmail,
     requirements = [],
@@ -803,6 +804,7 @@ const orderSubmission = async (payload, userId) => {
     email: existingUser.email,
     orderStatus: "in progress",
     additionalEmail: additionalEmail,
+    transactionId: transactionId,
     referredImages: referredImages,
     requirements: requirements,
     preferredDesigns: preferredDesigns,
@@ -820,6 +822,7 @@ const orderSubmission = async (payload, userId) => {
     deliveryDateUTC: deliveryDateUTC,
     deliveryDateString: deliveryDateString,
   };
+
   const newInvoice = {
     date: dateString,
     invoiceId: invoiceId,

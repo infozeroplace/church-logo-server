@@ -27,6 +27,8 @@ const confirmEmailVerification = async (payload, userId) => {
     { new: true }
   );
 
+  updatedUser.isPasswordHas = updatedUser.password ? true : false;
+
   updatedUser.password = undefined;
 
   return updatedUser;
@@ -68,6 +70,27 @@ const verifyEmail = async (payload, userId) => {
   }
 };
 
+const editPasswordForGoogleUser = async (payload, userId) => {
+  const { newPassword } = payload;
+
+  const result = await User.findOneAndUpdate(
+    { userId },
+    {
+      password: await bcrypt.hash(
+        newPassword,
+        Number(config.bcrypt_salt_rounds)
+      ),
+    },
+    { new: true }
+  );
+
+  result.isPasswordHas = result.password ? true : false;
+
+  result.password = undefined;
+
+  return result;
+};
+
 const editPassword = async (payload, userId) => {
   const { currentPassword, newPassword } = payload;
 
@@ -90,6 +113,8 @@ const editPassword = async (payload, userId) => {
     },
     { new: true }
   );
+
+  result.isPasswordHas = result.password ? true : false;
 
   result.password = undefined;
 
@@ -118,6 +143,8 @@ const editProfileImage = async (payload, userId) => {
     { new: true, upsert: true }
   );
 
+  result.isPasswordHas = result.password ? true : false;
+
   result.password = undefined;
 
   return result;
@@ -130,12 +157,15 @@ const editProfile = async (payload, userId) => {
     { new: true, upsert: true }
   );
 
+  result.isPasswordHas = result.password ? true : false;
+
   result.password = undefined;
 
   return result;
 };
 
 export const ProfileService = {
+  editPasswordForGoogleUser,
   confirmEmailVerification,
   verifyEmail,
   editPassword,

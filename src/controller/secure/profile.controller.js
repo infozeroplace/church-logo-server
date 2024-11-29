@@ -33,6 +33,22 @@ const verifyEmail = catchAsync(async (req, res) => {
   });
 });
 
+const editPasswordForGoogleUser = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const result = await ProfileService.editPasswordForGoogleUser(
+    req.body,
+    userId
+  );
+
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Password updated successfully",
+    meta: null,
+    data: result,
+  });
+});
+
 const editPassword = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const result = await ProfileService.editPassword(req.body, userId);
@@ -73,6 +89,7 @@ const editProfile = catchAsync(async (req, res) => {
 });
 
 export const ProfileController = {
+  editPasswordForGoogleUser,
   confirmEmailVerification,
   verifyEmail,
   editPassword,

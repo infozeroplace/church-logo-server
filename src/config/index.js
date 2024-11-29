@@ -38,6 +38,21 @@ const config = {
           process.env.DEVELOPMENT_ADMIN_FRONTEND_BASE_URL_DEV,
         ],
 
+  stripe_secret_key:
+    process.env.NODE_ENV === "production"
+      ? process.env.STRIPE_SECRET_KEY_PROD
+      : process.env.STRIPE_SECRET_KEY_DEV,
+
+  stripe_publishable_key:
+    process.env.NODE_ENV === "production"
+      ? process.env.STRIPE_PUBLISHABLE_KEY_PROD
+      : process.env.STRIPE_PUBLISHABLE_KEY_DEV,
+
+  stripe_endpoint_secret_key:
+    process.env.NODE_ENV === "production"
+      ? process.env.STRIPE_ENDPOINT_SECRET_KEY_PROD
+      : process.env.STRIPE_ENDPOINT_SECRET_KEY_DEV,
+
   bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
 
   jwt: {

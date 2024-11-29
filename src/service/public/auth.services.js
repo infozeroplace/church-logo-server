@@ -70,6 +70,8 @@ const resetPassword = async (payload) => {
     config?.jwt?.refresh_expires_in
   );
 
+  updatedUser.isPasswordHas = updatedUser.password ? true : false;
+
   // Remove the password
   updatedUser.password = undefined;
 
@@ -214,6 +216,8 @@ const register = async (payload) => {
     await sendEmailVerificationLink(createdUser?.email, name, emailAccessToken);
   }
 
+  createdUser.isPasswordHas = createdUser.password ? true : false;
+
   // Remove the password
   createdUser.password = undefined;
 
@@ -279,6 +283,8 @@ const login = async (payload) => {
     config?.jwt?.refresh_secret,
     config?.jwt?.refresh_expires_in
   );
+
+  isUserExist.isPasswordHas = isUserExist.password ? true : false;
 
   // Remove the password
   isUserExist.password = undefined;
@@ -418,6 +424,8 @@ const googleLogin = async (code) => {
       isUserExists.conversationId = existingConversation._id;
     }
 
+    isUserExists.isPasswordHas = isUserExists.password ? true : false;
+
     // Remove the password
     isUserExists.password = undefined;
 
@@ -430,9 +438,10 @@ const googleLogin = async (code) => {
     const createdUser = await User.create({
       userId: await generateUserId(),
       email: email,
-      firstName: given_name,
-      lastName: family_name,
+      firstName: given_name || " ",
+      lastName: family_name || " ",
       verified: true,
+      isGoogleLogin: true,
       photo: {
         url: picture,
       },
@@ -491,6 +500,8 @@ const googleLogin = async (code) => {
       config?.jwt?.refresh_expires_in
     );
 
+    createdUser.isPasswordHas = createdUser.password ? true : false;
+
     return {
       accessToken,
       refreshToken,
@@ -522,8 +533,6 @@ const refreshToken = async (token) => {
     creator: isUserExist._id,
   });
 
-  // Remove the password
-  isUserExist.password = undefined;
   if (existingConversation) {
     isUserExist.conversationId = existingConversation._id;
   }
@@ -539,6 +548,11 @@ const refreshToken = async (token) => {
     config?.jwt?.secret,
     config?.jwt?.expires_in
   );
+
+  isUserExist.isPasswordHas = isUserExist.password ? true : false;
+
+  // Remove the password
+  isUserExist.password = undefined;
 
   return {
     accessToken: newAccessToken,

@@ -170,6 +170,7 @@ const OrderSchema = Schema(
       phone: String,
       country: String,
     },
+    transactionId: String,
     orderId: String,
     packageId: String,
     userId: String,

@@ -24,14 +24,14 @@ const UserSchema = Schema(
     firstName: {
       type: String,
       trim: true,
-      min: [3, "Too small"],
+      min: [1, "Too small"],
       max: [15, "Too big"],
       required: [true, "First name is required!"],
     },
     lastName: {
       type: String,
       trim: true,
-      min: [3, "Too small"],
+      min: [1, "Too small"],
       max: [15, "Too big"],
       required: [true, "Last name is required!"],
     },
@@ -49,6 +49,10 @@ const UserSchema = Schema(
         values: departments,
         message: "{VALUE} is not matched",
       },
+    },
+    isGoogleLogin: {
+      type: Boolean,
+      default: false,
     },
     verified: {
       type: Boolean,
@@ -92,6 +96,9 @@ const UserSchema = Schema(
         /^(?=.*[A-Za-z0-9])(?=.*[^A-Za-z0-9]).{6,}$/,
         "Invalid password format",
       ],
+      required: function () {
+        return !this.isGoogleLogin; // Only require password for non-Google logins
+      },
     },
     resetToken: {
       type: String,
