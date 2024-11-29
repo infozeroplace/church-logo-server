@@ -87,7 +87,7 @@ export const sendEmailVerificationLink = async (email, name, token) => {
     to: email,
     subject: "Email Verification",
     html: `<div style="width: 100%; padding: 20px; font-size: 16px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-  <h3>Dear ${name},</h3>
+  <h3>Dear, ${name}</h3>
   <p>
     Thank you for joining Church Logo! To complete your registration and activate your account, 
     please verify your email address by clicking the link below <strong style="font-weight: 700;">within 15 minutes</strong>:
@@ -117,7 +117,7 @@ export const sendEmailVerificationLink = async (email, name, token) => {
 
   <p>
     If you encounter any issues or have questions, please don't hesitate to contact us at 
-    <a href="mailto:${config.support_mail_address}" style="color: #348edb; text-decoration: none;">${config.support_mail_address}</a>.
+    <a href="mailto:${config.support_mail_address}" style="color: #348edb; text-decoration: none;">${config.support_mail_address}</a>
   </p>
 
   <p>
@@ -159,7 +159,7 @@ export const sendForgotPasswordLink = async (email, name, token) => {
     subject: "Reset Your Church Logo Password",
     html: `
       <div style="width: 100%; padding: 20px 10px; font-size: 18px; font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
-        <h3>Hello, ${name},</h3>
+        <h3>Hello, ${name}</h3>
 
         <p>
           We received a request to reset your Church Logo account password. Please click the link below 
@@ -238,7 +238,7 @@ export const sendAdminForgotPasswordLink = async (email, name, token) => {
     subject: "Reset Your Admin Password - Church Logo Dashboard",
     html: `
       <div style="width: 100%; padding: 20px; font-size: 16px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h3>Dear ${name},</h3>
+        <h3>Dear, ${name}</h3>
         <p>
           We received a request to reset your password for the Church Logo Admin Dashboard.
           If you made this request, please click the link below <strong>within 24 hours</strong> to reset your password securely:

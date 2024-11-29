@@ -438,8 +438,8 @@ const googleLogin = async (code) => {
     const createdUser = await User.create({
       userId: await generateUserId(),
       email: email,
-      firstName: given_name || " ",
-      lastName: family_name || " ",
+      firstName: given_name || ".",
+      lastName: family_name || ".",
       verified: true,
       isGoogleLogin: true,
       photo: {
