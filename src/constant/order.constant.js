@@ -43,6 +43,12 @@ export const orderStatus = [
   "completed",
 ];
 
+export const paymentStatus = [
+  "pending",
+  "succeeded",
+  "rejected"
+];
+
 export const orderMessageSearchableFields = [
   "sender.firstName",
   "sender.lastName",

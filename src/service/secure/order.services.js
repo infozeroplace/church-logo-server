@@ -158,9 +158,13 @@ const getOrderCount = async (userId) => {
 };
 
 const addExtraFeatures = async (payload) => {
-  const { id, extraFeatures } = payload;
+  const { transactionId, id, extraFeatures } = payload;
 
   const existingOrder = await Order.findById(id);
+  const existingUser = await User.findOne({ userId: existingOrder.userId });
+  const existingPackage = await Package.findOne({
+    packageId: existingOrder.packageId,
+  });
 
   if (!existingOrder) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Order not found!");
@@ -171,12 +175,61 @@ const addExtraFeatures = async (payload) => {
     0
   );
 
+  const invoiceId = await generateInvoiceId();
+
   const result = await Order.findByIdAndUpdate(id, {
     $set: {
       additionalFeature: [...extraFeatures, ...existingOrder.additionalFeature],
       totalPrice: existingOrder.totalPrice + totalExtraFeaturesCost,
     },
+    $push: {
+      transactionId: { $each: [transactionId] },
+      invoiceId: { $each: [invoiceId] },
+    },
   });
+
+  const { dateString } = dateFormatter.getDates();
+
+  const newInvoice = {
+    date: dateString,
+    invoiceId: invoiceId,
+    transactionId: transactionId,
+    orderId: existingOrder.orderId,
+    packageId: existingOrder.packageId,
+    name: `${existingOrder.contactDetails?.firstName} ${existingOrder.contactDetails?.lastName}`,
+    email: existingUser.email || existingOrder.additionalEmail,
+    phone: existingOrder.contactDetails?.phone,
+    country: existingOrder.contactDetails?.country,
+    packageTitle: existingPackage?.title,
+    type: "Add ons",
+    items: [...extraFeatures],
+    subtotal: totalExtraFeaturesCost,
+    packagePrice: 0,
+    total: totalExtraFeaturesCost,
+  };
+
+  const createdInvoice = await Invoice.create(newInvoice);
+
+  const systemData = await System.findOne({ systemId: "system-1" });
+
+  if (existingOrder.additionalEmail !== existingOrder?.email) {
+    await sendOrderInvoiceToCustomer(
+      newInvoice,
+      existingOrder?.email,
+      systemData.logo
+    );
+    await sendOrderInvoiceToCustomer(
+      newInvoice,
+      existingOrder?.additionalEmail,
+      systemData.logo
+    );
+  }
+
+  await sendOrderInvoiceToCustomer(
+    newInvoice,
+    existingOrder?.email,
+    systemData.logo
+  );
 
   return result;
 };
@@ -720,6 +773,8 @@ const orderSubmission = async (payload, userId) => {
     packageId,
     category,
     transactionId,
+    paymentCurrency,
+    paymentStatus,
     contactDetails,
     additionalEmail,
     requirements = [],
@@ -797,14 +852,17 @@ const orderSubmission = async (payload, userId) => {
     user: existingUser._id,
     package: existingPackage._id,
     contactDetails: contactDetails,
+    invoiceId: [invoiceId],
     orderId: orderId,
     packageId: packageId,
     userId: userId,
     category: category,
+    paymentCurrency: paymentCurrency,
+    paymentStatus: paymentStatus,
     email: existingUser.email,
     orderStatus: "in progress",
     additionalEmail: additionalEmail,
-    transactionId: transactionId,
+    transactionId: [transactionId],
     referredImages: referredImages,
     requirements: requirements,
     preferredDesigns: preferredDesigns,
@@ -821,11 +879,13 @@ const orderSubmission = async (payload, userId) => {
     orderDateString: dateString,
     deliveryDateUTC: deliveryDateUTC,
     deliveryDateString: deliveryDateString,
+    paymentDateString: dateString,
   };
 
   const newInvoice = {
     date: dateString,
     invoiceId: invoiceId,
+    transactionId: transactionId,
     orderId: orderId,
     packageId: packageId,
     name: `${contactDetails?.firstName} ${contactDetails?.lastName}`,

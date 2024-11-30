@@ -28,6 +28,9 @@ const additionalItemSchema = z.object({
 
 const addExtraFeatures = z.object({
   body: z.object({
+    transactionId: z.string({
+      required_error: "Transaction Id is required",
+    }),
     id: z.string({
       required_error: "Id is required",
     }),

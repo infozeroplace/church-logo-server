@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import mongoosePlugin from "mongoose-aggregate-paginate-v2";
-import { orderStatus } from "../constant/order.constant.js";
+import { orderStatus, paymentStatus } from "../constant/order.constant.js";
 
 const orderMessageSchema = Schema(
   {
@@ -170,18 +170,28 @@ const OrderSchema = Schema(
       phone: String,
       country: String,
     },
-    transactionId: String,
+    transactionId: Array,
+    invoiceId: Array,
     orderId: String,
     packageId: String,
     userId: String,
     category: String,
     email: String,
+    paymentCurrency: String,
     orderStatus: {
       type: String,
       enum: {
         values: orderStatus,
         message: "{VALUE} is not matched",
       },
+    },
+    paymentStatus: {
+      type: String,
+      enum: {
+        values: paymentStatus,
+        message: "{VALUE} is not matched",
+      },
+      default: "pending"
     },
     isReviewed: {
       type: Boolean,
@@ -204,6 +214,7 @@ const OrderSchema = Schema(
     orderDateString: String,
     deliveryDateUTC: Date,
     deliveryDateString: String,
+    paymentDateString: String,
   },
   {
     timestamps: true,

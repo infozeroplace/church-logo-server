@@ -5,6 +5,7 @@ const InvoiceSchema = Schema(
   {
     date: String,
     invoiceId: String,
+    transactionId: String,
     orderId: String,
     packageId: String,
     name: String,

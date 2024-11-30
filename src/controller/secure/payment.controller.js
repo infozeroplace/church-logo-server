@@ -3,6 +3,24 @@ import { PaymentService } from "../../service/secure/payment.services.js";
 import catchAsync from "../../shared/catchAsync.js";
 import sendResponse from "../../shared/sendResponse.js";
 
+const createExtraFeaturesPaymentIntent = catchAsync(async (req, res) => {
+  const data = req.body;
+  const userId = req.user.userId;
+
+  const result = await PaymentService.createExtraFeaturesPaymentIntent(
+    data,
+    userId
+  );
+
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Payment intent successful",
+    meta: null,
+    data: result,
+  });
+});
+
 const createPaymentIntent = catchAsync(async (req, res) => {
   const { ...data } = req.body;
   const userId = req.user.userId;
@@ -49,6 +67,7 @@ const createCheckoutSession = catchAsync(async (req, res) => {
 });
 
 export const PaymentController = {
+  createExtraFeaturesPaymentIntent,
   createPaymentIntent,
   stripeWebhookHandler,
   createCheckoutSession,

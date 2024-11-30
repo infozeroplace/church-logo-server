@@ -12,13 +12,53 @@ import packagePriceConversion from "../../utils/packagePriceConversion.js";
 const stripe = new Stripe(config.stripe_secret_key);
 const endpointSecret = config.stripe_endpoint_secret_key;
 
+const createExtraFeaturesPaymentIntent = async (payload, userId) => {
+  const { extraFeatures, orderId, givenUserId } = payload;
+
+  if (givenUserId !== userId) {
+    throw new ApiError(httpStatus.FORBIDDEN, "User ID doesn't match!");
+  }
+
+  const existingUser = await User.findOne({ userId: givenUserId });
+
+  if (!existingUser) {
+    throw new ApiError(httpStatus.FORBIDDEN, "User doesn't exist!");
+  }
+
+  const existingOrder = await Order.findById(orderId);
+
+  if (!existingOrder) {
+    throw new ApiError(httpStatus.FORBIDDEN, "Order doesn't exist!");
+  }
+
+  const totalPrice = extraFeatures.reduce((total, item) => {
+    return total + (item.price || 0); // Ensure `price` exists
+  }, 0);
+
+  const customer = await stripe.customers.create({
+    email: existingOrder.additionalEmail,
+    name: `${existingOrder.contactDetails.firstName} ${existingOrder.contactDetails.lastName}`,
+  });
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    currency: "usd",
+    amount: Math.round(Number(totalPrice.toFixed(2)) * 100),
+    customer: customer.id,
+    automatic_payment_methods: {
+      enabled: true,
+    },
+    receipt_email: existingOrder.additionalEmail,
+  });
+
+  return paymentIntent.client_secret;
+};
+
 const createPaymentIntent = async (payload, userId) => {
   const {
     userId: givenUserId,
     packageId,
-    category,
-    contactDetails,
     additionalEmail,
+    contactDetails,
     selectedAdditionalFeats = [],
     selectedAdditionalRevision = [],
     selectedAdditionalDeliveryTime = [],
@@ -135,6 +175,7 @@ const createCheckoutSession = async (payload, userId) => {
 };
 
 export const PaymentService = {
+  createExtraFeaturesPaymentIntent,
   createPaymentIntent,
   handleWebhookEvent,
   createCheckoutSession,
