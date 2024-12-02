@@ -81,6 +81,29 @@
       table thead tr .th__2 {
         text-align: right;
       }
+
+      /* Media Query for Mobile Devices */
+      @media screen and (max-width: 768px) {
+        .container .header,
+        .container .date {
+          flex-direction: column; /* Switch to column layout on smaller devices */
+          text-align: center; /* Optional: Center-align text for better layout */
+        }
+
+        .container .header .header__left img {
+          width: 100%; /* Make logo responsive */
+          max-width: 150px; /* Set a maximum size for better readability */
+        }
+
+        .container .header .header__right h1 {
+          font-size: 20px; /* Adjust font size for smaller screens */
+        }
+
+        .container .date .date__right,
+        .container .date .date__left {
+          text-align: center;
+        }
+      }
     </style>
   </head>
 
@@ -95,10 +118,7 @@
     <div class="container">
       <div class="header">
         <div class="header__left">
-          <img
-            src="<%= logo %>"
-            alt="church_logo"
-          />
+          <img src="<%= logo %>" alt="church_logo" />
         </div>
         <div class="header__right"><h1>Invoice</h1></div>
       </div>

@@ -2,7 +2,9 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import path from "path";
+import Stripe from "stripe";
 import { fileURLToPath } from "url";
+import config from "./config/index.js";
 import { corsOptions } from "./constant/common.constant.js";
 import globalErrorHandler from "./middleware/globalErrorHandler.js";
 import routes from "./routes/index.js";
@@ -11,6 +13,7 @@ const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+export const stripe = new Stripe(config.stripe_secret_key);
 
 app.use(cors(corsOptions));
 app.use(cookieParser());

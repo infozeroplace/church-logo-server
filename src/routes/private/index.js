@@ -12,7 +12,10 @@ import { ProfileRoutes } from "./profile.routes.js";
 import { ReviewRoutes } from "./review.routes.js";
 import { SystemRoutes } from "./system.routes.js";
 import { TaskRoutes } from "./task.routes.js";
+import { InvoiceRoutes } from "./invoice.routes.js";
 const router = express.Router();
+
+router.use(InvoiceRoutes);
 
 router.use(DashboardRoutes);
 

@@ -4,6 +4,7 @@ import config from "../config/index.js";
 import ApiError from "../error/ApiError.js";
 import handleCastError from "../error/handleCastError.js";
 import handleMongoServerError from "../error/handleMongoServerError.js";
+import handleStripeError from "../error/handleStripeError.js";
 import handleValidationError from "../error/handleValidationError.js";
 import handleZodError from "../error/handleZodError.js";
 
@@ -46,6 +47,14 @@ const globalErrorHandler = (
 
     case error instanceof ZodError:
       simplifiedError = handleZodError(error);
+      statusCode = simplifiedError?.statusCode;
+      message = simplifiedError?.message;
+      errorMessages = simplifiedError?.errorMessages;
+      // ...
+      break;
+
+    case error?.type && error.type.startsWith("Stripe"):
+      simplifiedError = handleStripeError(error);
       statusCode = simplifiedError?.statusCode;
       message = simplifiedError?.message;
       errorMessages = simplifiedError?.errorMessages;

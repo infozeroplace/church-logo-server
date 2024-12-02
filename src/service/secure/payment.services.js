@@ -8,8 +8,8 @@ import User from "../../model/user.model.js";
 import calculateAdditionalItemPrice from "../../utils/calculateAdditionalItemPrice.js";
 import { createOrder } from "../../utils/createOrder.js";
 import packagePriceConversion from "../../utils/packagePriceConversion.js";
+import { stripe } from "../../app.js";
 
-const stripe = new Stripe(config.stripe_secret_key);
 const endpointSecret = config.stripe_endpoint_secret_key;
 
 const createExtraFeaturesPaymentIntent = async (payload, userId) => {

@@ -1,4 +1,5 @@
 import httpStatus from "http-status";
+import Stripe from "stripe";
 import mongoose from "mongoose";
 import config from "../../config/index.js";
 import { orderMessageSearchableFields } from "../../constant/order.constant.js";
@@ -23,6 +24,7 @@ import generateInvoiceId from "../../utils/generateInvoiceId.js";
 import generateOrderId from "../../utils/generateOrderId.js";
 import packagePriceConversion from "../../utils/packagePriceConversion.js";
 import { getUsersFromAdminsAndClientsOnlineList } from "../../utils/socket.js";
+import { stripe } from "../../app.js";
 
 const { ObjectId } = mongoose.Types;
 
@@ -158,32 +160,46 @@ const getOrderCount = async (userId) => {
 };
 
 const addExtraFeatures = async (payload) => {
-  const { transactionId, id, extraFeatures } = payload;
+  const { paymentIntentId, orderId, extraFeatures } = payload;
 
-  const existingOrder = await Order.findById(id);
+  const existingOrder = await Order.findById(orderId);
   const existingUser = await User.findOne({ userId: existingOrder.userId });
   const existingPackage = await Package.findOne({
     packageId: existingOrder.packageId,
   });
 
+  const isOrderExist = await Order.findOne({
+    transactionId: { $in: [paymentIntentId] },
+  });
+
+  if(isOrderExist) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Order already created!");
+  }
+
   if (!existingOrder) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Order not found!");
   }
+
+  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
   const totalExtraFeaturesCost = extraFeatures.reduce(
     (acc, feature) => acc + feature.price,
     0
   );
 
+  const totalExtraPrice = Number(totalExtraFeaturesCost.toFixed(2));
+  const totalExistingPrice = Number(existingOrder.totalPrice.toFixed(2));
+  const totalPrice = Number((totalExistingPrice + totalExtraPrice).toFixed(2));
+
   const invoiceId = await generateInvoiceId();
 
-  const result = await Order.findByIdAndUpdate(id, {
+  const result = await Order.findByIdAndUpdate(orderId, {
     $set: {
       additionalFeature: [...extraFeatures, ...existingOrder.additionalFeature],
-      totalPrice: existingOrder.totalPrice + totalExtraFeaturesCost,
+      totalPrice: totalPrice,
     },
     $push: {
-      transactionId: { $each: [transactionId] },
+      transactionId: { $each: [paymentIntentId] },
       invoiceId: { $each: [invoiceId] },
     },
   });
@@ -193,7 +209,7 @@ const addExtraFeatures = async (payload) => {
   const newInvoice = {
     date: dateString,
     invoiceId: invoiceId,
-    transactionId: transactionId,
+    transactionId: paymentIntentId,
     orderId: existingOrder.orderId,
     packageId: existingOrder.packageId,
     name: `${existingOrder.contactDetails?.firstName} ${existingOrder.contactDetails?.lastName}`,
@@ -201,11 +217,11 @@ const addExtraFeatures = async (payload) => {
     phone: existingOrder.contactDetails?.phone,
     country: existingOrder.contactDetails?.country,
     packageTitle: existingPackage?.title,
-    type: "Add ons",
+    type: "add ons",
     items: [...extraFeatures],
-    subtotal: totalExtraFeaturesCost,
+    subtotal: totalExtraPrice,
     packagePrice: 0,
-    total: totalExtraFeaturesCost,
+    total: totalExtraPrice,
   };
 
   const createdInvoice = await Invoice.create(newInvoice);
@@ -772,9 +788,7 @@ const orderSubmission = async (payload, userId) => {
     userId: givenUserId,
     packageId,
     category,
-    transactionId,
-    paymentCurrency,
-    paymentStatus,
+    paymentIntentId,
     contactDetails,
     additionalEmail,
     requirements = [],
@@ -786,6 +800,17 @@ const orderSubmission = async (payload, userId) => {
     selectedAdditionalDeliveryTime = [],
     selectedProgrammingLang = [],
   } = payload;
+
+
+  const isOrderExist = await Order.findOne({
+    transactionId: { $in: [paymentIntentId] },
+  });
+
+  if(isOrderExist) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Order already created!");
+  }
+
+  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
   if (givenUserId !== userId) {
     throw new ApiError(httpStatus.FORBIDDEN, "User ID doesn't match!");
@@ -857,12 +882,12 @@ const orderSubmission = async (payload, userId) => {
     packageId: packageId,
     userId: userId,
     category: category,
-    paymentCurrency: paymentCurrency,
-    paymentStatus: paymentStatus,
+    paymentCurrency: paymentIntent.currency,
+    paymentStatus: paymentIntent.status,
     email: existingUser.email,
     orderStatus: "in progress",
     additionalEmail: additionalEmail,
-    transactionId: [transactionId],
+    transactionId: [paymentIntentId],
     referredImages: referredImages,
     requirements: requirements,
     preferredDesigns: preferredDesigns,
@@ -885,7 +910,7 @@ const orderSubmission = async (payload, userId) => {
   const newInvoice = {
     date: dateString,
     invoiceId: invoiceId,
-    transactionId: transactionId,
+    transactionId: paymentIntentId,
     orderId: orderId,
     packageId: packageId,
     name: `${contactDetails?.firstName} ${contactDetails?.lastName}`,
@@ -945,7 +970,6 @@ const orderSubmission = async (payload, userId) => {
     createdOrder?.email,
     systemData.logo
   );
-  // await sendOrderDetailsToAdmin(createdOrder);
 
   return createdOrder;
 };

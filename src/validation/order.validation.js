@@ -28,11 +28,11 @@ const additionalItemSchema = z.object({
 
 const addExtraFeatures = z.object({
   body: z.object({
-    transactionId: z.string({
-      required_error: "Transaction Id is required",
+    paymentIntentId: z.string({
+      required_error: "payment Intent Id is required",
     }),
-    id: z.string({
-      required_error: "Id is required",
+    orderId: z.string({
+      required_error: "Order Id is required",
     }),
     extraFeatures: z.array(additionalItemSchema, {
       required_error: "Features are required",
@@ -135,6 +135,10 @@ const orderSubmissionZodSchema = z.object({
 
     contactDetails: z.object(contactDetailsSchema, {
       required_error: "Contact detail is required",
+    }),
+
+    paymentIntentId: z.string({
+      required_error: "payment Intent Id is required",
     }),
   }),
 });
