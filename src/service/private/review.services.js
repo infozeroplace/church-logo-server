@@ -132,7 +132,7 @@ const getList = async (filters, paginationOptions) => {
         as: "user",
       },
     },
-    { $unwind: "$user" },
+    { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "packages",
@@ -141,7 +141,7 @@ const getList = async (filters, paginationOptions) => {
         as: "package",
       },
     },
-    { $unwind: "$package" },
+    { $unwind: { path: "$package", preserveNullAndEmptyArrays: true } },
     {
       $match: whereConditions,
     },

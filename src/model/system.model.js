@@ -34,6 +34,7 @@ const SystemSchema = Schema(
     },
     orderSettings: {
       designSample: Array,
+      psDesignSample: Array,
       colorSample: Array,
     },
     privacyPolicy: {

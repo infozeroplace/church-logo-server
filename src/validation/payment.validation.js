@@ -18,6 +18,33 @@ const contactDetails = z.object(
   }
 );
 
+const createCustomOfferPaymentIntentZod = z.object({
+  body: z.object({
+    givenUserId: z.string({
+      required_error: "Given user Id is required",
+    }),
+    category: z.string({
+      required_error: "Category is required",
+    }),
+    offerType: z.string({
+      required_error: "Offer type is required",
+    }),
+    thumbnail: z.string({
+      required_error: "Thumbnail is required",
+    }).url(),
+    delivery: z.number({
+      required_error: "Deliver day is required",
+    }),
+    revisions: z.number({
+      required_error: "Revision is required",
+    }),
+    price: z.number({
+      required_error: "Price is required",
+    }),
+    features: z.array(z.string()).optional(),
+  }),
+});
+
 const createExtraFeaturesPaymentIntentZod = z.object({
   body: z.object({
     orderId: z.string({
@@ -52,6 +79,7 @@ const createPaymentIntentZod = z.object({
 });
 
 export const PaymentValidation = {
+  createCustomOfferPaymentIntentZod,
   createExtraFeaturesPaymentIntentZod,
   createPaymentIntentZod,
 };

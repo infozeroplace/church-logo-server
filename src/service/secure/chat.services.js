@@ -10,6 +10,50 @@ import { getUsersFromAdminsAndClientsOnlineList } from "../../utils/socket.js";
 
 const { ObjectId } = mongoose.Types;
 
+const updateCustomOfferMessageAction = async (payload) => {
+  const { id, action } = payload;
+
+  const existingMessage = await Message.findById(id);
+
+  if (!existingMessage)
+    throw new ApiError(httpStatus.BAD_REQUEST, "Message not found!");
+
+  if (existingMessage.action) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Already took action!");
+  }
+
+  const message = await Message.findByIdAndUpdate(
+    id,
+    {
+      $set: { action },
+    },
+    { new: true }
+  ).populate([
+    {
+      path: "conversationId",
+      select: ["_id", "creator", "participant", "lastUpdated"],
+    },
+    {
+      path: "sender",
+      select: ["firstName", "lastName", "role", "userId", "photo"],
+    },
+    {
+      path: "receiver",
+      select: ["firstName", "lastName", "role", "userId", "photo"],
+    },
+  ]);
+
+  const { filteredSocketIds } = getUsersFromAdminsAndClientsOnlineList(
+    message.receiver.userId
+  );
+
+  if (filteredSocketIds.length > 0) {
+    global.io.to(filteredSocketIds).emit("adminClientMsgTransfer", message);
+  }
+
+  return message;
+}
+
 const getConversationId = async (userId) => {
   const user = await User.findOne({ userId });
 
@@ -126,6 +170,9 @@ const getUnreadMessages = async (filters, paginationOptions) => {
         dateTime: 1,
         createdAt: 1,
         messageType: 1,
+        isCustomOffer: 1,
+        customOffer: 1,
+        action: 1,
       },
     },
     { $match: whereConditions },
@@ -291,6 +338,9 @@ const getMessages = async (filters, paginationOptions) => {
         dateTime: 1,
         createdAt: 1,
         messageType: 1,
+        isCustomOffer: 1,
+        customOffer: 1,
+        action: 1,
       },
     },
     {
@@ -399,6 +449,7 @@ const getInbox = async (userId) => {
 };
 
 export const ChatService = {
+  updateCustomOfferMessageAction,
   getConversationId,
   getUnreadMessages,
   sendMessage,

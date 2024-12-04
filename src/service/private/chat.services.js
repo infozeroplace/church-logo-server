@@ -164,6 +164,9 @@ const getUnreadMessages = async (filters, paginationOptions) => {
         dateTime: 1,
         createdAt: 1,
         messageType: 1,
+        isCustomOffer: 1,
+        customOffer: 1,
+        action: 1,
       },
     },
     { $match: whereConditions },
@@ -281,7 +284,7 @@ const sendAdminMessage = async (payload, userId) => {
 const sendMessage = async (payload) => {
   const { UTC } = dateFormatter.getDates();
 
-  const { text, conversationId, attachment } = payload;
+  const { conversationId, isCustomOffer } = payload;
 
   const {
     creator,
@@ -294,67 +297,138 @@ const sendMessage = async (payload) => {
     _id: conversationId,
   }).populate(["creator", "participant"]);
 
-  const result = await Message.create({
-    isRead: false,
-    text,
-    dateTime: UTC,
-    sender: participant._id,
-    receiver: creator._id,
-    messageType: "client",
-    conversationId,
-    attachment,
-  });
+  if (isCustomOffer) {
+    const {
+      description,
+      revisions,
+      delivery,
+      price,
+      category,
+      offerType,
+      thumbnail,
+      features,
+    } = payload;
 
-  let urls = [];
-
-  if (text) {
-    const urlRegex = /(?<=\s|^)(https?:\/\/[^\s,]+|www\.[^\s,]+)(?=\s|,|$)/g;
-
-    function extractUrls(text) {
-      return (text.match(urlRegex) || []).map((url) => url.trim());
-    }
-
-    urls = extractUrls(text);
-  }
-
-  await Conversation.findOneAndUpdate(
-    {
-      _id: conversationId,
-    },
-    {
-      $set: {
-        attachments: [...attachment, ...attachments],
-        links: [...urls, ...links],
-        lastMessage: result._id,
-        lastUpdated: UTC,
+    const result = await Message.create({
+      isCustomOffer,
+      customOffer: {
+        revisions,
+        delivery,
+        price,
+        category,
+        offerType,
+        thumbnail,
+        features,
       },
+      text: description,
+      dateTime: UTC,
+      sender: participant._id,
+      receiver: creator._id,
+      messageType: "client",
+      conversationId,
+      attachment: [],
+    });
+
+    await Conversation.findOneAndUpdate(
+      {
+        _id: conversationId,
+      },
+      {
+        $set: {
+          lastMessage: result._id,
+          lastUpdated: UTC,
+        },
+      }
+    );
+
+    const message = await Message.findById(result._id).populate([
+      {
+        path: "conversationId",
+        select: ["_id", "creator", "participant", "lastUpdated"],
+      },
+      {
+        path: "sender",
+        select: ["firstName", "lastName", "role", "userId", "photo"],
+      },
+      {
+        path: "receiver",
+        select: ["firstName", "lastName", "role", "userId", "photo"],
+      },
+    ]);
+
+    const { filteredSocketIds } = getUsersFromAdminsAndClientsOnlineList(
+      creator?.userId
+    );
+
+    if (filteredSocketIds.length > 0) {
+      global.io.to(filteredSocketIds).emit("adminClientMsgTransfer", message);
     }
-  );
 
-  const message = await Message.findById(result._id).populate([
-    {
-      path: "conversationId",
-      select: ["_id", "creator", "participant", "lastUpdated"],
-    },
-    {
-      path: "sender",
-      select: ["firstName", "lastName", "role", "userId", "photo"],
-    },
-    {
-      path: "receiver",
-      select: ["firstName", "lastName", "role", "userId", "photo"],
-    },
-  ]);
+    return message;
+  } else {
+    const { text, attachment } = payload;
 
-  const { filteredSocketIds } = getUsersFromAdminsAndClientsOnlineList(
-    creator?.userId
-  );
+    const result = await Message.create({
+      text,
+      dateTime: UTC,
+      sender: participant._id,
+      receiver: creator._id,
+      messageType: "client",
+      conversationId,
+      attachment,
+    });
 
-  if (filteredSocketIds.length > 0) {
-    global.io.to(filteredSocketIds).emit("adminClientMsgTransfer", message);
+    let urls = [];
+
+    if (text) {
+      const urlRegex = /(?<=\s|^)(https?:\/\/[^\s,]+|www\.[^\s,]+)(?=\s|,|$)/g;
+
+      function extractUrls(text) {
+        return (text.match(urlRegex) || []).map((url) => url.trim());
+      }
+
+      urls = extractUrls(text);
+    }
+
+    await Conversation.findOneAndUpdate(
+      {
+        _id: conversationId,
+      },
+      {
+        $set: {
+          attachments: [...attachment, ...attachments],
+          links: [...urls, ...links],
+          lastMessage: result._id,
+          lastUpdated: UTC,
+        },
+      }
+    );
+
+    const message = await Message.findById(result._id).populate([
+      {
+        path: "conversationId",
+        select: ["_id", "creator", "participant", "lastUpdated"],
+      },
+      {
+        path: "sender",
+        select: ["firstName", "lastName", "role", "userId", "photo"],
+      },
+      {
+        path: "receiver",
+        select: ["firstName", "lastName", "role", "userId", "photo"],
+      },
+    ]);
+
+    const { filteredSocketIds } = getUsersFromAdminsAndClientsOnlineList(
+      creator?.userId
+    );
+
+    if (filteredSocketIds.length > 0) {
+      global.io.to(filteredSocketIds).emit("adminClientMsgTransfer", message);
+    }
+
+    return message;
   }
-
-  return message;
 };
 
 const getAdminMessages = async (filters, paginationOptions) => {
@@ -512,6 +586,9 @@ const getMessages = async (filters, paginationOptions) => {
         dateTime: 1,
         createdAt: 1,
         messageType: 1,
+        isCustomOffer: 1,
+        customOffer: 1,
+        action: 1,
       },
     },
     {

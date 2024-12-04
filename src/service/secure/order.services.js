@@ -1,11 +1,12 @@
 import httpStatus from "http-status";
-import Stripe from "stripe";
 import mongoose from "mongoose";
+import { stripe } from "../../app.js";
 import config from "../../config/index.js";
 import { orderMessageSearchableFields } from "../../constant/order.constant.js";
 import ApiError from "../../error/ApiError.js";
 import { dateFormatter } from "../../helper/dateFormatter.js";
 import { PaginationHelpers } from "../../helper/paginationHelper.js";
+import { Message } from "../../model/chat.model.js";
 import { Invoice } from "../../model/invoice.model.js";
 import {
   Order,
@@ -24,9 +25,148 @@ import generateInvoiceId from "../../utils/generateInvoiceId.js";
 import generateOrderId from "../../utils/generateOrderId.js";
 import packagePriceConversion from "../../utils/packagePriceConversion.js";
 import { getUsersFromAdminsAndClientsOnlineList } from "../../utils/socket.js";
-import { stripe } from "../../app.js";
 
 const { ObjectId } = mongoose.Types;
+
+const submitCustomOffer = async (payload, userId) => {
+  const {
+    revisions,
+    delivery,
+    price,
+    category,
+    thumbnail,
+    features,
+    messageId,
+    userId: givenUserId,
+    paymentIntentId,
+  } = payload;
+
+  const isOrderExist = await Order.findOne({
+    transactionId: { $in: [paymentIntentId] },
+  });
+
+  if (isOrderExist) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Order already created!");
+  }
+
+  if (givenUserId !== userId) {
+    throw new ApiError(httpStatus.FORBIDDEN, "User ID doesn't match!");
+  }
+
+  const existingUser = await User.findOne({ userId: givenUserId });
+
+  if (!existingUser) {
+    throw new ApiError(httpStatus.FORBIDDEN, "User doesn't exist!");
+  }
+
+  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+  const { UTC, dateString } = dateFormatter.getDates();
+
+  const { deliveryDateUTC, deliveryDateString } = calculateDeliveryDate(
+    delivery,
+    []
+  );
+
+  await Message.findByIdAndUpdate(messageId, {
+    $set: {
+      action: "accepted",
+    },
+  });
+
+  const orderId = await generateOrderId();
+  const invoiceId = await generateInvoiceId();
+
+  const newOrder = {
+    user: existingUser._id,
+    // package: existingPackage._id,
+    contactDetails: {
+      firstName: existingUser.firstName,
+      lastName: existingUser.lastName,
+      phone: existingUser.phone,
+      country: existingUser.country,
+    },
+    invoiceId: [invoiceId],
+    orderId: orderId,
+    // packageId: packageId,
+    userId: userId,
+    category: category,
+    paymentCurrency: paymentIntent.currency,
+    paymentStatus: paymentIntent.status,
+    email: existingUser.email,
+    orderStatus: "in progress",
+    orderType: "custom",
+    thumbnail: thumbnail,
+    additionalEmail: existingUser.email,
+    transactionId: [paymentIntentId],
+    customFeatures: features,
+    referredImages: [],
+    requirements: [],
+    preferredDesigns: [],
+    preferredColors: [],
+    additionalFeature: [],
+    additionalRevision: [],
+    additionalDeliveryTime: [],
+    additionalProgrammingLang: [],
+    totalRevision: revisions,
+    usedRevision: 0,
+    // packagePrice: 0,
+    totalPrice: price,
+    orderDateUTC: UTC,
+    orderDateString: dateString,
+    deliveryDateUTC: deliveryDateUTC,
+    deliveryDateString: deliveryDateString,
+    paymentDateString: dateString,
+  };
+
+  const newInvoice = {
+    date: dateString,
+    invoiceId: invoiceId,
+    transactionId: paymentIntentId,
+    orderId: orderId,
+    // packageId: packageId,
+    name: `${existingUser.firstName} ${existingUser?.lastName}`,
+    email: existingUser.email,
+    phone: existingUser?.phone || "",
+    country: existingUser?.country || "",
+    packageTitle: "Custom Offer",
+    type: "new",
+    items: features.map((item) => ({ label: item, value: item, price: 0 })),
+    subtotal: price,
+    packagePrice: 0,
+    total: price,
+  };
+
+  const createdOrder = await Order.create(newOrder);
+  const createdInvoice = await Invoice.create(newInvoice);
+
+  const admin = await User.findOne({ role: config.super_admin_role });
+
+  const createdConversation = await OrderConversation.create({
+    order: createdOrder._id,
+    creator: existingUser._id,
+    participant: admin._id,
+    lastUpdated: UTC,
+    messageType: "order",
+  });
+
+  await Order.findOneAndUpdate(
+    { _id: createdOrder._id },
+    {
+      conversation: createdConversation._id,
+    }
+  );
+
+  const systemData = await System.findOne({ systemId: "system-1" });
+
+  await sendOrderInvoiceToCustomer(
+    newInvoice,
+    createdOrder?.email,
+    systemData.logo
+  );
+
+  return createdOrder;
+};
 
 const addReview = async (payload) => {
   const {
@@ -172,12 +312,16 @@ const addExtraFeatures = async (payload) => {
     transactionId: { $in: [paymentIntentId] },
   });
 
-  if(isOrderExist) {
+  if (isOrderExist) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Order already created!");
   }
 
   if (!existingOrder) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Order not found!");
+  }
+
+  if (existingOrder.orderType === "custom") {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Cannot add!");
   }
 
   const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
@@ -381,7 +525,7 @@ const getOrderUnreadMessages = async (filters, paginationOptions) => {
         as: "sender",
       },
     },
-    { $unwind: "$sender" },
+    { $unwind: { path: "$sender", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "users",
@@ -390,7 +534,7 @@ const getOrderUnreadMessages = async (filters, paginationOptions) => {
         as: "receiver",
       },
     },
-    { $unwind: "$receiver" },
+    { $unwind: { path: "$receiver", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "orderconversations",
@@ -399,7 +543,7 @@ const getOrderUnreadMessages = async (filters, paginationOptions) => {
         as: "conversation",
       },
     },
-    { $unwind: "$conversation" },
+    { $unwind: { path: "$conversation", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "orders",
@@ -408,7 +552,7 @@ const getOrderUnreadMessages = async (filters, paginationOptions) => {
         as: "order",
       },
     },
-    { $unwind: "$order" },
+    { $unwind: { path: "$order", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "packages",
@@ -417,32 +561,10 @@ const getOrderUnreadMessages = async (filters, paginationOptions) => {
         as: "package",
       },
     },
-    { $unwind: "$package" },
+    { $unwind: { path: "$package", preserveNullAndEmptyArrays: true } },
     {
       $project: {
-        "sender.userId": 1,
-        "sender.firstName": 1,
-        "sender.lastName": 1,
-        "sender.photo": 1,
-        "sender.role": 1,
-        "receiver.userId": 1,
-        "receiver.firstName": 1,
-        "receiver.lastName": 1,
-        "receiver.photo": 1,
-        "receiver.role": 1,
-        "conversation._id": 1,
-        "conversation.creator": 1,
-        "conversation.participant": 1,
-        "conversation.lastUpdated": 1,
-        "order._id": 1,
-        "package.title": 1,
-        "package.thumbnail1": 1,
-        text: 1,
-        attachment: 1,
-        isRead: 1,
-        dateTime: 1,
-        createdAt: 1,
-        messageType: 1,
+        __v: 0,
       },
     },
     { $match: whereConditions },
@@ -587,7 +709,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
         as: "sender",
       },
     },
-    { $unwind: "$sender" },
+    { $unwind: { path: "$sender", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "users",
@@ -596,7 +718,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
         as: "receiver",
       },
     },
-    { $unwind: "$receiver" },
+    { $unwind: { path: "$receiver", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "orderconversations",
@@ -605,7 +727,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
         as: "conversation",
       },
     },
-    { $unwind: "$conversation" },
+    { $unwind: { path: "$conversation", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "orders",
@@ -614,7 +736,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
         as: "order",
       },
     },
-    { $unwind: "$order" },
+    { $unwind: { path: "$order", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "packages",
@@ -623,7 +745,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
         as: "package",
       },
     },
-    { $unwind: "$package" },
+    { $unwind: { path: "$package", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "reviews",
@@ -635,37 +757,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
     { $unwind: { path: "$review", preserveNullAndEmptyArrays: true } },
     {
       $project: {
-        "sender.userId": 1,
-        "sender.firstName": 1,
-        "sender.lastName": 1,
-        "sender.photo": 1,
-        "sender.role": 1,
-        "receiver.userId": 1,
-        "receiver.firstName": 1,
-        "receiver.lastName": 1,
-        "receiver.photo": 1,
-        "receiver.role": 1,
-        "conversation._id": 1,
-        "conversation.creator": 1,
-        "conversation.participant": 1,
-        "conversation.lastUpdated": 1,
-        "order._id": 1,
-        "package.title": 1,
-        "package.thumbnail1": 1,
-        "review.ratingPoints": 1,
-        "review.communicationRatings": 1,
-        "review.serviceRatings": 1,
-        "review.recommendedRatings": 1,
-        "review.productImageUrl": 1,
-        text: 1,
-        isDelivered: 1,
-        isReview: 1,
-        action: 1,
-        attachment: 1,
-        isRead: 1,
-        dateTime: 1,
-        createdAt: 1,
-        messageType: 1,
+        __v: 0,
       },
     },
     {
@@ -713,7 +805,7 @@ const getOrderList = async (paginationOptions, userId) => {
         as: "user",
       },
     },
-    { $unwind: "$user" },
+    { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "packages",
@@ -722,7 +814,7 @@ const getOrderList = async (paginationOptions, userId) => {
         as: "package",
       },
     },
-    { $unwind: "$package" },
+    { $unwind: { path: "$package", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "orderconversations",
@@ -731,7 +823,7 @@ const getOrderList = async (paginationOptions, userId) => {
         as: "conversation",
       },
     },
-    { $unwind: "$conversation" },
+    { $unwind: { path: "$conversation", preserveNullAndEmptyArrays: true } },
     {
       $unset: [
         "user.password",
@@ -748,7 +840,7 @@ const getOrderList = async (paginationOptions, userId) => {
       ],
     },
     {
-      $match: { userId },
+      $match: { userId: String(userId) }, // Ensure userId matches correctly
     },
   ];
 
@@ -801,12 +893,11 @@ const orderSubmission = async (payload, userId) => {
     selectedProgrammingLang = [],
   } = payload;
 
-
   const isOrderExist = await Order.findOne({
     transactionId: { $in: [paymentIntentId] },
   });
 
-  if(isOrderExist) {
+  if (isOrderExist) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Order already created!");
   }
 
@@ -975,6 +1066,7 @@ const orderSubmission = async (payload, userId) => {
 };
 
 export const OrderService = {
+  submitCustomOffer,
   addReview,
   getOrderCount,
   addExtraFeatures,

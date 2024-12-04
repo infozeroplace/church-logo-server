@@ -154,6 +154,7 @@ const orderSampleImage = z.object({
 const orderSettingsZodSchema = z.object({
   body: z.object({
     designSample: z.array(bannerImage),
+    psDesignSample: z.array(bannerImage),
     colorSample: z.array(bannerImage),
   }),
 });

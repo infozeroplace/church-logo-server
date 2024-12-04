@@ -13,6 +13,12 @@ import { SystemValidation } from "../../validation/system.validation.js";
 
 const router = express.Router();
 
+router.get(
+  "/system/get-category-services",
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  SystemController.getCategoryServices
+);
+
 router.put(
   "/system/update-contact-us-settings",
   auth(ENUM_USER_ROLE.SUPER_ADMIN),

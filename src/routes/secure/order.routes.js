@@ -7,6 +7,13 @@ import { OrderValidation } from "../../validation/order.validation.js";
 
 const router = express.Router();
 
+router.put(
+  "/order/submit-custom-offer",
+  auth(ENUM_USER_ROLE.USER),
+  validateRequest(OrderValidation.submitCustomOffer),
+  OrderController.submitCustomOffer
+);
+
 router.post(
   "/order/add-review",
   auth(ENUM_USER_ROLE.USER),

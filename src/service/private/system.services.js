@@ -1,7 +1,42 @@
 import httpStatus from "http-status";
 import ApiError from "../../error/ApiError.js";
 import cloudinary from "../../middleware/cloudinary.js";
+import { Package } from "../../model/package.model.js";
 import { System } from "../../model/system.model.js";
+
+const getCategoryServices = async (query) => {
+  const allPackagesByCategory = await Package.find({
+    category: query.category,
+  });
+
+  // Use a Map to store unique features with case-insensitivity
+  const uniqueFeaturesMap = new Map();
+
+  // Flatten and process all features in a single loop
+  allPackagesByCategory.forEach((pkg) => {
+    pkg.featuredItems.forEach((item) => {
+      const lowerCaseItem = item.toLowerCase();
+      if (!uniqueFeaturesMap.has(lowerCaseItem)) {
+        uniqueFeaturesMap.set(lowerCaseItem, item); // Preserve original case
+      }
+    });
+
+    pkg.additionalFeatures.forEach((feature) => {
+      const lowerCaseLabel = feature.label.toLowerCase();
+      if (!uniqueFeaturesMap.has(lowerCaseLabel)) {
+        uniqueFeaturesMap.set(lowerCaseLabel, feature.label); // Preserve original case
+      }
+    });
+  });
+
+  // Convert Map values to an array and sort alphabetically
+  return {
+    packageList: allPackagesByCategory,
+    services: Array.from(uniqueFeaturesMap.values()).sort((a, b) =>
+      a.localeCompare(b)
+    ),
+  };
+};
 
 const updateContactUsSettings = async (payload) => {
   const existing = await System.findOne({
@@ -429,7 +464,7 @@ const getSystemConfiguration = async (payload) => {
 };
 
 const updateOrderSettings = async (payload) => {
-  const { designSample, colorSample } = payload;
+  const { designSample, psDesignSample, colorSample } = payload;
 
   // Find existing system by systemId
   let system = await System.findOne({ systemId: "system-1" });
@@ -467,6 +502,7 @@ const updateOrderSettings = async (payload) => {
 
   // Handle existing samples if system exists
   await filterAndDelete(system?.orderSettings?.designSample, designSample);
+  await filterAndDelete(system?.orderSettings?.psDesignSample, psDesignSample);
   await filterAndDelete(system?.orderSettings?.colorSample, colorSample);
 
   // Update order settings with the new payload
@@ -1143,6 +1179,7 @@ const updatePrivacyPolicy = async (payload) => {
 };
 
 export const SystemService = {
+  getCategoryServices,
   updateContactUsSettings,
   updateAboutUsSettings,
   updateLogo,

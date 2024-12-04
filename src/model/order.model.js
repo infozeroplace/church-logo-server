@@ -178,6 +178,16 @@ const OrderSchema = Schema(
     category: String,
     email: String,
     paymentCurrency: String,
+    thumbnail: String,
+    customFeatures: Array,
+    orderType:  {
+      type: String,
+      enum: {
+        values: ['general', 'custom'],
+        message: "{VALUE} is not matched",
+      },
+       default: "general"
+    },
     orderStatus: {
       type: String,
       enum: {
@@ -192,7 +202,7 @@ const OrderSchema = Schema(
         message: "{VALUE} is not matched",
       },
       default: "pending"
-    },
+    }, 
     isReviewed: {
       type: Boolean,
       default: false,

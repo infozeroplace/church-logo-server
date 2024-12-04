@@ -1,5 +1,5 @@
 import httpStatus from "http-status";
-import Stripe from "stripe";
+import { stripe } from "../../app.js";
 import config from "../../config/index.js";
 import ApiError from "../../error/ApiError.js";
 import { Order } from "../../model/order.model.js";
@@ -8,9 +8,39 @@ import User from "../../model/user.model.js";
 import calculateAdditionalItemPrice from "../../utils/calculateAdditionalItemPrice.js";
 import { createOrder } from "../../utils/createOrder.js";
 import packagePriceConversion from "../../utils/packagePriceConversion.js";
-import { stripe } from "../../app.js";
 
 const endpointSecret = config.stripe_endpoint_secret_key;
+
+const createCustomOfferPaymentIntent = async (payload, userId) => {
+  const { givenUserId, price } = payload;
+
+  if (givenUserId !== userId) {
+    throw new ApiError(httpStatus.FORBIDDEN, "User ID doesn't match!");
+  }
+
+  const existingUser = await User.findOne({ userId: givenUserId });
+
+  if (!existingUser) {
+    throw new ApiError(httpStatus.FORBIDDEN, "User doesn't exist!");
+  }
+
+  const customer = await stripe.customers.create({
+    email: existingUser.email,
+    name: `${existingUser.firstName} ${existingUser.lastName}`,
+  });
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    currency: "usd",
+    amount: Math.round(Number(price.toFixed(2)) * 100),
+    customer: customer.id,
+    automatic_payment_methods: {
+      enabled: true,
+    },
+    receipt_email: existingUser.email,
+  });
+
+  return paymentIntent.client_secret;
+};
 
 const createExtraFeaturesPaymentIntent = async (payload, userId) => {
   const { extraFeatures, orderId, givenUserId } = payload;
@@ -175,6 +205,7 @@ const createCheckoutSession = async (payload, userId) => {
 };
 
 export const PaymentService = {
+  createCustomOfferPaymentIntent,
   createExtraFeaturesPaymentIntent,
   createPaymentIntent,
   handleWebhookEvent,

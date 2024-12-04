@@ -11,6 +11,9 @@ const getSystemConfig = async () => {
     const sortedDesignSample = obj?.orderSettings?.designSample.sort(
       (a, b) => a?.serialId - b?.serialId
     );
+    const sortedPsDesignSample = obj?.orderSettings?.psDesignSample.sort(
+      (a, b) => a?.serialId - b?.serialId
+    );
     const sortedColorSample = obj?.orderSettings?.colorSample.sort(
       (a, b) => a?.serialId - b?.serialId
     );
@@ -22,6 +25,7 @@ const getSystemConfig = async () => {
       ...obj,
       orderSettings: {
         designSample: sortedDesignSample,
+        psDesignSample: sortedPsDesignSample,
         colorSample: sortedColorSample,
       },
       homeSettings: {

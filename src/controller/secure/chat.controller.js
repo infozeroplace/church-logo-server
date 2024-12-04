@@ -6,6 +6,20 @@ import catchAsync from "../../shared/catchAsync.js";
 import pick from "../../shared/pick.js";
 import sendResponse from "../../shared/sendResponse.js";
 
+const updateCustomOfferMessageAction = catchAsync(async (req, res) => {
+  const { ...message } = req.body;
+
+  const result = await ChatService.updateCustomOfferMessageAction(message);
+
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Message added successfully!",
+    meta: null,
+    data: result,
+  });
+});
+
 const getConversationId = catchAsync(async (req, res) => {
   const { userId } = req.user;
 
@@ -83,6 +97,7 @@ const getInbox = catchAsync(async (req, res) => {
 });
 
 export const ChatController = {
+  updateCustomOfferMessageAction,
   getConversationId,
   getUnreadMessages,
   sendMessage,

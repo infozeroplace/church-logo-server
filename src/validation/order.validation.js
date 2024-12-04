@@ -1,5 +1,35 @@
 import { z } from "zod";
 
+const submitCustomOffer = z.object({
+  body: z.object({
+    messageId: z.string({
+      required_error: "Message Id is required",
+    }),
+    paymentIntentId: z.string({
+      required_error: "payment Intent Id is required",
+    }),
+    category: z.string({
+      required_error: "Category is required",
+    }),
+    delivery: z.number({
+      required_error: "Delivery is required",
+    }),
+    offerType: z.string({
+      required_error: "Offer type is required",
+    }),
+    price: z.number({
+      required_error: "Price is required",
+    }),
+    revisions: z.number({
+      required_error: "Revision is required",
+    }),
+    thumbnail: z.string({
+      required_error: "Thumbnail is required",
+    }).url(),
+    features: z.array(z.string()).optional(),
+  }),
+});
+
 const addReview = z.object({
   body: z.object({
     orderId: z.string({
@@ -144,6 +174,7 @@ const orderSubmissionZodSchema = z.object({
 });
 
 export const OrderValidation = {
+  submitCustomOffer,
   addReview,
   addExtraFeatures,
   updateOrderMessageAction,

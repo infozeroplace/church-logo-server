@@ -90,7 +90,7 @@ const getOrderUnreadMessages = async (filters, paginationOptions) => {
         as: "sender",
       },
     },
-    { $unwind: "$sender" },
+    { $unwind: { path: "$sender", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "users",
@@ -99,7 +99,7 @@ const getOrderUnreadMessages = async (filters, paginationOptions) => {
         as: "receiver",
       },
     },
-    { $unwind: "$receiver" },
+    { $unwind: { path: "$receiver", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "orderconversations",
@@ -108,7 +108,7 @@ const getOrderUnreadMessages = async (filters, paginationOptions) => {
         as: "conversation",
       },
     },
-    { $unwind: "$conversation" },
+    { $unwind: { path: "$conversation", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "orders",
@@ -117,7 +117,7 @@ const getOrderUnreadMessages = async (filters, paginationOptions) => {
         as: "order",
       },
     },
-    { $unwind: "$order" },
+    { $unwind: { path: "$order", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "packages",
@@ -126,34 +126,11 @@ const getOrderUnreadMessages = async (filters, paginationOptions) => {
         as: "package",
       },
     },
-    { $unwind: "$package" },
+    { $unwind: { path: "$package", preserveNullAndEmptyArrays: true } },
     {
       $project: {
-        "sender.userId": 1,
-        "sender.firstName": 1,
-        "sender.lastName": 1,
-        "sender.photo": 1,
-        "sender.role": 1,
-        "receiver.userId": 1,
-        "receiver.firstName": 1,
-        "receiver.lastName": 1,
-        "receiver.photo": 1,
-        "receiver.role": 1,
-        "conversation._id": 1,
-        "conversation.creator": 1,
-        "conversation.participant": 1,
-        "conversation.lastUpdated": 1,
-        "order._id": 1,
-        "order.orderStatus": 1,
-        "package.title": 1,
-        "package.thumbnail1": 1,
-        text: 1,
-        attachment: 1,
-        isRead: 1,
-        dateTime: 1,
-        createdAt: 1,
-        messageType: 1,
-      },
+        __v: 0,
+      }
     },
     { $match: whereConditions },
     { $sort: sortConditions },
@@ -312,7 +289,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
         as: "sender",
       },
     },
-    { $unwind: "$sender" },
+    { $unwind: { path: "$sender", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "users",
@@ -321,7 +298,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
         as: "receiver",
       },
     },
-    { $unwind: "$receiver" },
+    { $unwind: { path: "$receiver", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "orderconversations",
@@ -330,7 +307,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
         as: "conversation",
       },
     },
-    { $unwind: "$conversation" },
+    { $unwind: { path: "$conversation", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "orders",
@@ -339,7 +316,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
         as: "order",
       },
     },
-    { $unwind: "$order" },
+    { $unwind: { path: "$order", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "packages",
@@ -348,7 +325,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
         as: "package",
       },
     },
-    { $unwind: "$package" },
+    { $unwind: { path: "$package", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "reviews",
@@ -360,38 +337,8 @@ const getOrderMessages = async (filters, paginationOptions) => {
     { $unwind: { path: "$review", preserveNullAndEmptyArrays: true } },
     {
       $project: {
-        "sender.userId": 1,
-        "sender.firstName": 1,
-        "sender.lastName": 1,
-        "sender.photo": 1,
-        "sender.role": 1,
-        "receiver.userId": 1,
-        "receiver.firstName": 1,
-        "receiver.lastName": 1,
-        "receiver.photo": 1,
-        "receiver.role": 1,
-        "conversation._id": 1,
-        "conversation.creator": 1,
-        "conversation.participant": 1,
-        "conversation.lastUpdated": 1,
-        "order._id": 1,
-        "package.title": 1,
-        "package.thumbnail1": 1,
-        "review.ratingPoints": 1,
-        "review.communicationRatings": 1,
-        "review.serviceRatings": 1,
-        "review.recommendedRatings": 1,
-        "review.productImageUrl": 1,
-        text: 1,
-        isDelivered: 1,
-        isReview: 1,
-        action: 1,
-        attachment: 1,
-        isRead: 1,
-        dateTime: 1,
-        createdAt: 1,
-        messageType: 1,
-      },
+        __v: 0,
+      }
     },
     {
       $match: { "conversation._id": new ObjectId(conversation) },
@@ -513,7 +460,7 @@ const getOrderList = async (filters, paginationOptions) => {
         as: "user",
       },
     },
-    { $unwind: "$user" },
+    { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "packages",
@@ -522,7 +469,7 @@ const getOrderList = async (filters, paginationOptions) => {
         as: "package",
       },
     },
-    { $unwind: "$package" },
+    { $unwind: { path: "$package", preserveNullAndEmptyArrays: true } },
     {
       $unset: ["password"],
     },

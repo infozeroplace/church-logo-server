@@ -29,11 +29,23 @@ const messageSchema = Schema(
       index: true,
       default: false,
     },
+    isCustomOffer: {
+      type: Boolean,
+      default: false,
+    },
+    customOffer: {},
     text: String,
     messageType: {
       type: String,
       enum: {
         values: messageTypes,
+        message: "{VALUE} is not matched",
+      },
+    },
+    action: {
+      type: String,
+      enum: {
+        values: ["accepted", "declined"],
         message: "{VALUE} is not matched",
       },
     },

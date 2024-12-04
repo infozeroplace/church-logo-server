@@ -8,6 +8,13 @@ import { PaymentValidation } from "../../validation/payment.validation.js";
 const router = express.Router();
 
 router.post(
+  "/payment/create-custom-offer-payment-intent",
+  auth(ENUM_USER_ROLE.USER),
+  validateRequest(PaymentValidation.createCustomOfferPaymentIntentZod),
+  PaymentController.createCustomOfferPaymentIntent
+);
+
+router.post(
   "/payment/create-extra-features-payment-intent",
   auth(ENUM_USER_ROLE.USER),
   validateRequest(PaymentValidation.createExtraFeaturesPaymentIntentZod),

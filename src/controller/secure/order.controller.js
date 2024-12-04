@@ -6,6 +6,21 @@ import catchAsync from "../../shared/catchAsync.js";
 import pick from "../../shared/pick.js";
 import sendResponse from "../../shared/sendResponse.js";
 
+const submitCustomOffer = catchAsync(async (req, res) => {
+  const { ...payload } = req.body;
+  const userId = req.user.userId;
+
+  const result = await OrderService.submitCustomOffer(payload, userId);
+
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Added successfully!",
+    meta: null,
+    data: result,
+  });
+});
+
 const addReview = catchAsync(async (req, res) => {
   const userId = req.user.userId;
 
@@ -167,6 +182,7 @@ const orderSubmission = catchAsync(async (req, res) => {
 });
 
 export const OrderController = {
+  submitCustomOffer,
   addReview,
   getOrderCount,
   addExtraFeatures,

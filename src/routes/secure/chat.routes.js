@@ -7,6 +7,13 @@ import { ChatValidation } from "../../validation/chat.validation.js";
 
 const router = express.Router();
 
+router.put(
+  "/chat/update-custom-offer-message-action",
+  auth(ENUM_USER_ROLE.USER),
+  validateRequest(ChatValidation.updateCustomOfferMessageAction),
+  ChatController.updateCustomOfferMessageAction
+);
+
 router.get(
   "/chat/get-conversation-id",
   auth(ENUM_USER_ROLE.USER),
