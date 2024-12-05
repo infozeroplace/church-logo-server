@@ -22,7 +22,7 @@ app.use(cookieParser());
 app.use(
   (req, res, next) => {
     if (req.originalUrl.includes("/payment/webhook")) {
-      // req.rawBody = req.body;
+      req.rawBody = req.body;
       next(); // Skip JSON parsing for this route
     } else {
       express.json({
