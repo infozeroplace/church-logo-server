@@ -180,13 +180,13 @@ const OrderSchema = Schema(
     paymentCurrency: String,
     thumbnail: String,
     customFeatures: Array,
-    orderType:  {
+    orderType: {
       type: String,
       enum: {
-        values: ['general', 'custom'],
+        values: ["general", "custom"],
         message: "{VALUE} is not matched",
       },
-       default: "general"
+      default: "general",
     },
     orderStatus: {
       type: String,
@@ -201,8 +201,8 @@ const OrderSchema = Schema(
         values: paymentStatus,
         message: "{VALUE} is not matched",
       },
-      default: "pending"
-    }, 
+      default: "pending",
+    },
     isReviewed: {
       type: Boolean,
       default: false,
@@ -238,4 +238,86 @@ OrderSchema.plugin(mongoosePlugin);
 
 const Order = model("Order", OrderSchema);
 
-export { Order, OrderConversation, OrderMessage };
+const TemporaryOrderSchema = Schema(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    package: {
+      type: Schema.Types.ObjectId,
+      ref: "Package",
+    },
+    contactDetails: {
+      firstName: String,
+      lastName: String,
+      phone: String,
+      country: String,
+    },
+    orderType: {
+      type: String,
+      enum: {
+        values: ["general", "custom"],
+        message: "{VALUE} is not matched",
+      },
+      default: "general",
+    },
+    orderStatus: {
+      type: String,
+      enum: {
+        values: orderStatus,
+        message: "{VALUE} is not matched",
+      },
+    },
+    paymentStatus: {
+      type: String,
+      enum: {
+        values: paymentStatus,
+        message: "{VALUE} is not matched",
+      },
+      default: "pending",
+    },
+    isReviewed: {
+      type: Boolean,
+      default: false,
+    },
+    transactionId: Array,
+    invoiceId: Array,
+    orderId: String,
+    packageId: String,
+    userId: String,
+    category: String,
+    email: String,
+    paymentCurrency: String,
+    thumbnail: String,
+    customFeatures: Array,
+    additionalEmail: String,
+    referredImages: Array,
+    requirements: Array,
+    preferredDesigns: Array,
+    preferredColors: Array,
+    additionalFeature: Array,
+    additionalRevision: Array,
+    additionalDeliveryTime: Array,
+    additionalProgrammingLang: Array,
+    totalRevision: Number,
+    usedRevision: Number,
+    packagePrice: Number,
+    totalPrice: Number,
+    orderDateUTC: Date,
+    orderDateString: String,
+    deliveryDateUTC: Date,
+    deliveryDateString: String,
+    paymentDateString: String,
+  },
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+    },
+  }
+);
+
+const TemporaryOrder = model("TemporaryOrder", TemporaryOrderSchema);
+
+export { Order, OrderConversation, OrderMessage, TemporaryOrder };

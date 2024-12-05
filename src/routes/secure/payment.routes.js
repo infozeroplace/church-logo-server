@@ -28,11 +28,11 @@ router.post(
   PaymentController.createPaymentIntent
 );
 
-// router.post(
-//   "/payment/webhook",
-//   express.raw({ type: "application/json" }),
-//   PaymentController.stripeWebhookHandler
-// );
+router.post(
+  "/payment/webhook",
+  express.raw({ type: "application/json" }),
+  PaymentController.stripeWebhookHandler
+);
 
 // router.post(
 //   "/payment/create-package-checkout-session",

@@ -2,12 +2,12 @@ import httpStatus from "http-status";
 import { stripe } from "../../app.js";
 import config from "../../config/index.js";
 import ApiError from "../../error/ApiError.js";
-import { Order } from "../../model/order.model.js";
-import { Package } from "../../model/package.model.js";
+import { Order, TemporaryOrder } from "../../model/order.model.js";
 import User from "../../model/user.model.js";
-import calculateAdditionalItemPrice from "../../utils/calculateAdditionalItemPrice.js";
-import { createOrder } from "../../utils/createOrder.js";
-import packagePriceConversion from "../../utils/packagePriceConversion.js";
+import {
+  createOrder,
+  createTemporaryGeneralOrder,
+} from "../../utils/createOrder.js";
 
 const endpointSecret = config.stripe_endpoint_secret_key;
 
@@ -84,64 +84,12 @@ const createExtraFeaturesPaymentIntent = async (payload, userId) => {
 };
 
 const createPaymentIntent = async (payload, userId) => {
-  const {
-    userId: givenUserId,
-    packageId,
-    additionalEmail,
-    contactDetails,
-    selectedAdditionalFeats = [],
-    selectedAdditionalRevision = [],
-    selectedAdditionalDeliveryTime = [],
-    selectedProgrammingLang = [],
-  } = payload;
-
-  if (givenUserId !== userId) {
-    throw new ApiError(httpStatus.FORBIDDEN, "User ID doesn't match!");
-  }
-
-  const existingUser = await User.findOne({ userId: givenUserId });
-
-  if (!existingUser) {
-    throw new ApiError(httpStatus.FORBIDDEN, "User doesn't exist!");
-  }
-
-  const existingPackage = await Package.findOne({ packageId });
-
-  if (!existingPackage) {
-    throw new ApiError(httpStatus.FORBIDDEN, "Package doesn't exist!");
-  }
-
-  const packagePrice = packagePriceConversion(existingPackage);
-
-  const additionalFeatsPrice = calculateAdditionalItemPrice(
-    selectedAdditionalFeats
-  );
-
-  const additionalRevisionPrice = calculateAdditionalItemPrice(
-    selectedAdditionalRevision
-  );
-
-  const additionalDeliveryPrice = calculateAdditionalItemPrice(
-    selectedAdditionalDeliveryTime
-  );
-
-  const additionalProgrammingLangPrice = calculateAdditionalItemPrice(
-    selectedProgrammingLang
-  );
-
-  const totalPrice = Number(
-    (
-      packagePrice +
-      additionalFeatsPrice +
-      additionalRevisionPrice +
-      additionalDeliveryPrice +
-      additionalProgrammingLangPrice
-    ).toFixed(2)
-  );
+  const { additionalEmail, firstName, lastName, totalPrice, orderId } =
+    await createTemporaryGeneralOrder(payload, userId);
 
   const customer = await stripe.customers.create({
     email: additionalEmail,
-    name: `${contactDetails.firstName} ${contactDetails.lastName}`,
+    name: `${firstName} ${lastName}`,
   });
 
   const paymentIntent = await stripe.paymentIntents.create({
@@ -150,6 +98,10 @@ const createPaymentIntent = async (payload, userId) => {
     customer: customer.id,
     automatic_payment_methods: {
       enabled: true,
+    },
+    metadata: {
+      orderId: orderId,
+      orderType: "general-order",
     },
     receipt_email: additionalEmail,
   });
@@ -160,17 +112,26 @@ const createPaymentIntent = async (payload, userId) => {
 const handleWebhookEvent = async (data, sig) => {
   const event = stripe.webhooks.constructEvent(data, sig, endpointSecret);
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-    const { metadata, payment_intent } = session;
+  const session = event?.data?.object;
+  const { metadata, id } = session;
 
-    const { orderId } = metadata;
+  const { orderId, orderType } = metadata;
 
-    const order = await Order.findById(orderId);
+  if (event.type === "payment_intent.succeeded") {
+    if (orderType === "general-order") {
+      const tempGeneralOrder = await TemporaryOrder.findOne({ orderId }).lean();
 
-    console.log(order);
-  } else {
-    // console.log(`Unhandled event type: ${event.type}`);
+      await createOrder({
+        ...tempGeneralOrder,
+        paymentIntentId: id,
+      });
+
+      await TemporaryOrder.deleteOne({ orderId });
+    }
+  } else if (event.type === "payment_intent.payment_failed") {
+    await TemporaryOrder.deleteOne({ orderId });
+  } else if (event.type === "payment_intent.canceled") {
+    await TemporaryOrder.deleteOne({ orderId });
   }
 };
 

@@ -19,14 +19,15 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 
 app.use(
-  express.json({
-    limit: "500mb",
-    verify: (req, res, buf) => {
-      if (req.originalUrl.includes("/webhook")) {
-        req.rawBody = buf.toString();
-      }
-    },
-  })
+  (req, res, next) => {
+    if (req.originalUrl.includes("/payment/webhook")) {
+      next(); // Skip JSON parsing for this route
+    } else {
+      express.json({
+        limit: "500mb",
+      })(req, res, next); // Parse JSON for all other routes
+    }
+  }
 );
 
 app.use(express.urlencoded({ limit: "500mb", extended: true }));
