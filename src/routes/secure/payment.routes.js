@@ -30,7 +30,6 @@ router.post(
 
 router.post(
   "/payment/webhook",
-  express.raw({ type: "application/json" }),
   PaymentController.stripeWebhookHandler
 );
 
