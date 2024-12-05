@@ -20,26 +20,17 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 
 app.use(
-  (req, res, next) => {
-    if (req.originalUrl.includes("/payment/webhook")) {
-      req.rawBody = req.body;
-      next(); // Skip JSON parsing for this route
-    } else {
-      express.json({
-        limit: "500mb",
-      })(req, res, next); // Parse JSON for all other routes
-    }
-  }
+  express.json({
+    limit: "500mb",
+    verify: (req, res, buf) => {
+      const url = req.originalUrl;
+      if (url.includes("/payment/webhook")) {
+        // Preserve the raw body for Stripe verification
+        req.rawBody = buf;
+      }
+    },
+  })
 );
-
-// app.use(bodyParser.json({
-//   verify: function (req, res, buf) {
-//       var url = req.originalUrl;
-//       if (url.includes('/payment/webhook')) {
-//           req.rawBody = buf.toString()
-//       }
-//   }
-// }));
 
 app.use(express.urlencoded({ limit: "500mb", extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
