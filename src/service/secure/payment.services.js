@@ -9,7 +9,7 @@ import {
   createTemporaryGeneralOrder,
 } from "../../utils/createOrder.js";
 
-// const endpointSecret = config.stripe_endpoint_secret_key;
+const endpointSecret = config.stripe_endpoint_secret_key;
 
 const createCustomOfferPaymentIntent = async (payload, userId) => {
   const { givenUserId, price } = payload;
@@ -110,8 +110,6 @@ const createPaymentIntent = async (payload, userId) => {
 };
 
 const handleWebhookEvent = async (data, sig) => {
-  const endpointSecret = "whsec_YM6ywEGYHv1rm3jPIgLXFG7cLUZyK2LE";
-
   const event = stripe.webhooks.constructEvent(data, sig, endpointSecret);
 
   const session = event?.data?.object;
