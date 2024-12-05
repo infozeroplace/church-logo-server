@@ -284,6 +284,7 @@ const TemporaryOrderSchema = Schema(
     transactionId: Array,
     invoiceId: Array,
     orderId: String,
+    messageId: String,
     packageId: String,
     userId: String,
     category: String,

@@ -5,28 +5,22 @@ import ApiError from "../../error/ApiError.js";
 import { Order, TemporaryOrder } from "../../model/order.model.js";
 import User from "../../model/user.model.js";
 import {
+  addExtraFeatures,
+  createCustomOffer,
   createOrder,
+  createTemporaryCustomOrder,
   createTemporaryGeneralOrder,
 } from "../../utils/createOrder.js";
 
 const endpointSecret = config.stripe_endpoint_secret_key;
 
 const createCustomOfferPaymentIntent = async (payload, userId) => {
-  const { givenUserId, price } = payload;
-
-  if (givenUserId !== userId) {
-    throw new ApiError(httpStatus.FORBIDDEN, "User ID doesn't match!");
-  }
-
-  const existingUser = await User.findOne({ userId: givenUserId });
-
-  if (!existingUser) {
-    throw new ApiError(httpStatus.FORBIDDEN, "User doesn't exist!");
-  }
+  const { orderId, email, firstName, lastName, price } =
+    await createTemporaryCustomOrder(payload, userId);
 
   const customer = await stripe.customers.create({
-    email: existingUser.email,
-    name: `${existingUser.firstName} ${existingUser.lastName}`,
+    email: email,
+    name: `${firstName} ${lastName}`,
   });
 
   const paymentIntent = await stripe.paymentIntents.create({
@@ -36,7 +30,11 @@ const createCustomOfferPaymentIntent = async (payload, userId) => {
     automatic_payment_methods: {
       enabled: true,
     },
-    receipt_email: existingUser.email,
+    metadata: {
+      orderId: orderId,
+      orderType: "custom",
+    },
+    receipt_email: email,
   });
 
   return paymentIntent.client_secret;
@@ -44,38 +42,44 @@ const createCustomOfferPaymentIntent = async (payload, userId) => {
 
 const createExtraFeaturesPaymentIntent = async (payload, userId) => {
   const { extraFeatures, orderId, givenUserId } = payload;
-
+  
   if (givenUserId !== userId) {
     throw new ApiError(httpStatus.FORBIDDEN, "User ID doesn't match!");
   }
-
+  
   const existingUser = await User.findOne({ userId: givenUserId });
-
+  
   if (!existingUser) {
     throw new ApiError(httpStatus.FORBIDDEN, "User doesn't exist!");
   }
-
+  
   const existingOrder = await Order.findById(orderId);
-
+  
   if (!existingOrder) {
     throw new ApiError(httpStatus.FORBIDDEN, "Order doesn't exist!");
   }
-
+  
   const totalPrice = extraFeatures.reduce((total, item) => {
-    return total + (item.price || 0); // Ensure `price` exists
+    return total + (item.price || 0);
   }, 0);
-
+  
   const customer = await stripe.customers.create({
     email: existingOrder.additionalEmail,
     name: `${existingOrder.contactDetails.firstName} ${existingOrder.contactDetails.lastName}`,
   });
-
+  
   const paymentIntent = await stripe.paymentIntents.create({
     currency: "usd",
     amount: Math.round(Number(totalPrice.toFixed(2)) * 100),
     customer: customer.id,
     automatic_payment_methods: {
       enabled: true,
+    },
+    metadata: {
+      orderId: orderId,
+      orderType: "extra-features",
+      extraFeatures: JSON.stringify(extraFeatures),
+      givenUserId: givenUserId
     },
     receipt_email: existingOrder.additionalEmail,
   });
@@ -116,8 +120,9 @@ const handleWebhookEvent = async (data, sig) => {
   const { metadata, id } = session;
 
   const { orderId, orderType } = metadata;
-
+ 
   if (event.type === "payment_intent.succeeded") {
+
     if (orderType === "general-order") {
       const tempGeneralOrder = await TemporaryOrder.findOne({ orderId }).lean();
 
@@ -127,6 +132,25 @@ const handleWebhookEvent = async (data, sig) => {
       });
 
       await TemporaryOrder.deleteOne({ orderId });
+    }
+
+    if (orderType === "custom") {
+      const tempGeneralOrder = await TemporaryOrder.findOne({ orderId }).lean();
+
+      await createCustomOffer({
+        ...tempGeneralOrder,
+        paymentIntentId: id,
+      });
+
+      await TemporaryOrder.deleteOne({ orderId });
+    }
+
+    if (orderType === "extra-features") {
+      await addExtraFeatures({
+        paymentIntentId: id,
+        orderId: metadata.orderId,
+        extraFeatures: metadata.extraFeatures
+      });
     }
   } else if (event.type === "payment_intent.payment_failed") {
     await TemporaryOrder.deleteOne({ orderId });

@@ -29,143 +29,143 @@ import { getUsersFromAdminsAndClientsOnlineList } from "../../utils/socket.js";
 const { ObjectId } = mongoose.Types;
 
 const submitCustomOffer = async (payload, userId) => {
-  const {
-    revisions,
-    delivery,
-    price,
-    category,
-    thumbnail,
-    features,
-    messageId,
-    userId: givenUserId,
-    paymentIntentId,
-  } = payload;
+  // const {
+  //   revisions,
+  //   delivery,
+  //   price,
+  //   category,
+  //   thumbnail,
+  //   features,
+  //   messageId,
+  //   userId: givenUserId,
+  //   paymentIntentId,
+  // } = payload;
 
-  const isOrderExist = await Order.findOne({
-    transactionId: { $in: [paymentIntentId] },
-  });
+  // const isOrderExist = await Order.findOne({
+  //   transactionId: { $in: [paymentIntentId] },
+  // });
 
-  if (isOrderExist) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Order already created!");
-  }
+  // if (isOrderExist) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, "Order already created!");
+  // }
 
-  if (givenUserId !== userId) {
-    throw new ApiError(httpStatus.FORBIDDEN, "User ID doesn't match!");
-  }
+  // if (givenUserId !== userId) {
+  //   throw new ApiError(httpStatus.FORBIDDEN, "User ID doesn't match!");
+  // }
 
-  const existingUser = await User.findOne({ userId: givenUserId });
+  // const existingUser = await User.findOne({ userId: givenUserId });
 
-  if (!existingUser) {
-    throw new ApiError(httpStatus.FORBIDDEN, "User doesn't exist!");
-  }
+  // if (!existingUser) {
+  //   throw new ApiError(httpStatus.FORBIDDEN, "User doesn't exist!");
+  // }
 
-  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+  // const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-  const { UTC, dateString } = dateFormatter.getDates();
+  // const { UTC, dateString } = dateFormatter.getDates();
 
-  const { deliveryDateUTC, deliveryDateString } = calculateDeliveryDate(
-    delivery,
-    []
-  );
+  // const { deliveryDateUTC, deliveryDateString } = calculateDeliveryDate(
+  //   delivery,
+  //   []
+  // );
 
-  await Message.findByIdAndUpdate(messageId, {
-    $set: {
-      action: "accepted",
-    },
-  });
+  // await Message.findByIdAndUpdate(messageId, {
+  //   $set: {
+  //     action: "accepted",
+  //   },
+  // });
 
-  const orderId = await generateOrderId();
-  const invoiceId = await generateInvoiceId();
+  // const orderId = await generateOrderId();
+  // const invoiceId = await generateInvoiceId();
 
-  const newOrder = {
-    user: existingUser._id,
-    // package: existingPackage._id,
-    contactDetails: {
-      firstName: existingUser.firstName,
-      lastName: existingUser.lastName,
-      phone: existingUser.phone,
-      country: existingUser.country,
-    },
-    invoiceId: [invoiceId],
-    orderId: orderId,
-    // packageId: packageId,
-    userId: userId,
-    category: category,
-    paymentCurrency: paymentIntent.currency,
-    paymentStatus: paymentIntent.status,
-    email: existingUser.email,
-    orderStatus: "in progress",
-    orderType: "custom",
-    thumbnail: thumbnail,
-    additionalEmail: existingUser.email,
-    transactionId: [paymentIntentId],
-    customFeatures: features,
-    referredImages: [],
-    requirements: [],
-    preferredDesigns: [],
-    preferredColors: [],
-    additionalFeature: [],
-    additionalRevision: [],
-    additionalDeliveryTime: [],
-    additionalProgrammingLang: [],
-    totalRevision: revisions,
-    usedRevision: 0,
-    // packagePrice: 0,
-    totalPrice: price,
-    orderDateUTC: UTC,
-    orderDateString: dateString,
-    deliveryDateUTC: deliveryDateUTC,
-    deliveryDateString: deliveryDateString,
-    paymentDateString: dateString,
-  };
+  // const newOrder = {
+  //   user: existingUser._id,
+  //   // package: existingPackage._id,
+  //   contactDetails: {
+  //     firstName: existingUser.firstName,
+  //     lastName: existingUser.lastName,
+  //     phone: existingUser.phone,
+  //     country: existingUser.country,
+  //   },
+  //   invoiceId: [invoiceId],
+  //   orderId: orderId,
+  //   // packageId: packageId,
+  //   userId: userId,
+  //   category: category,
+  //   paymentCurrency: paymentIntent.currency,
+  //   paymentStatus: paymentIntent.status,
+  //   email: existingUser.email,
+  //   orderStatus: "in progress",
+  //   orderType: "custom",
+  //   thumbnail: thumbnail,
+  //   additionalEmail: existingUser.email,
+  //   transactionId: [paymentIntentId],
+  //   customFeatures: features,
+  //   referredImages: [],
+  //   requirements: [],
+  //   preferredDesigns: [],
+  //   preferredColors: [],
+  //   additionalFeature: [],
+  //   additionalRevision: [],
+  //   additionalDeliveryTime: [],
+  //   additionalProgrammingLang: [],
+  //   totalRevision: revisions,
+  //   usedRevision: 0,
+  //   // packagePrice: 0,
+  //   totalPrice: price,
+  //   orderDateUTC: UTC,
+  //   orderDateString: dateString,
+  //   deliveryDateUTC: deliveryDateUTC,
+  //   deliveryDateString: deliveryDateString,
+  //   paymentDateString: dateString,
+  // };
 
-  const newInvoice = {
-    date: dateString,
-    invoiceId: invoiceId,
-    transactionId: paymentIntentId,
-    orderId: orderId,
-    // packageId: packageId,
-    name: `${existingUser.firstName} ${existingUser?.lastName}`,
-    email: existingUser.email,
-    phone: existingUser?.phone || "",
-    country: existingUser?.country || "",
-    packageTitle: "Custom Offer",
-    type: "new",
-    items: features.map((item) => ({ label: item, value: item, price: 0 })),
-    subtotal: price,
-    packagePrice: 0,
-    total: price,
-  };
+  // const newInvoice = {
+  //   date: dateString,
+  //   invoiceId: invoiceId,
+  //   transactionId: paymentIntentId,
+  //   orderId: orderId,
+  //   // packageId: packageId,
+  //   name: `${existingUser.firstName} ${existingUser?.lastName}`,
+  //   email: existingUser.email,
+  //   phone: existingUser?.phone || "",
+  //   country: existingUser?.country || "",
+  //   packageTitle: "Custom Offer",
+  //   type: "new",
+  //   items: features.map((item) => ({ label: item, value: item, price: 0 })),
+  //   subtotal: price,
+  //   packagePrice: 0,
+  //   total: price,
+  // };
 
-  const createdOrder = await Order.create(newOrder);
-  const createdInvoice = await Invoice.create(newInvoice);
+  // const createdOrder = await Order.create(newOrder);
+  // const createdInvoice = await Invoice.create(newInvoice);
 
-  const admin = await User.findOne({ role: config.super_admin_role });
+  // const admin = await User.findOne({ role: config.super_admin_role });
 
-  const createdConversation = await OrderConversation.create({
-    order: createdOrder._id,
-    creator: existingUser._id,
-    participant: admin._id,
-    lastUpdated: UTC,
-    messageType: "order",
-  });
+  // const createdConversation = await OrderConversation.create({
+  //   order: createdOrder._id,
+  //   creator: existingUser._id,
+  //   participant: admin._id,
+  //   lastUpdated: UTC,
+  //   messageType: "order",
+  // });
 
-  await Order.findOneAndUpdate(
-    { _id: createdOrder._id },
-    {
-      conversation: createdConversation._id,
-    }
-  );
+  // await Order.findOneAndUpdate(
+  //   { _id: createdOrder._id },
+  //   {
+  //     conversation: createdConversation._id,
+  //   }
+  // );
 
-  const systemData = await System.findOne({ systemId: "system-1" });
+  // const systemData = await System.findOne({ systemId: "system-1" });
 
-  await sendOrderInvoiceToCustomer(
-    newInvoice,
-    createdOrder?.email,
-    systemData.logo
-  );
+  // await sendOrderInvoiceToCustomer(
+  //   newInvoice,
+  //   createdOrder?.email,
+  //   systemData.logo
+  // );
 
-  return createdOrder;
+  // return createdOrder;
 };
 
 const addReview = async (payload) => {
@@ -300,98 +300,98 @@ const getOrderCount = async (userId) => {
 };
 
 const addExtraFeatures = async (payload) => {
-  const { paymentIntentId, orderId, extraFeatures } = payload;
+  // const { paymentIntentId, orderId, extraFeatures } = payload;
 
-  const existingOrder = await Order.findById(orderId);
-  const existingUser = await User.findOne({ userId: existingOrder.userId });
-  const existingPackage = await Package.findOne({
-    packageId: existingOrder.packageId,
-  });
+  // const existingOrder = await Order.findById(orderId);
+  // const existingUser = await User.findOne({ userId: existingOrder.userId });
+  // const existingPackage = await Package.findOne({
+  //   packageId: existingOrder.packageId,
+  // });
 
-  const isOrderExist = await Order.findOne({
-    transactionId: { $in: [paymentIntentId] },
-  });
+  // const isOrderExist = await Order.findOne({
+  //   transactionId: { $in: [paymentIntentId] },
+  // });
 
-  if (isOrderExist) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Order already created!");
-  }
+  // if (isOrderExist) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, "Order already created!");
+  // }
 
-  if (!existingOrder) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Order not found!");
-  }
+  // if (!existingOrder) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, "Order not found!");
+  // }
 
-  if (existingOrder.orderType === "custom") {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Cannot add!");
-  }
+  // if (existingOrder.orderType === "custom") {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, "Cannot add!");
+  // }
 
-  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+  // const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-  const totalExtraFeaturesCost = extraFeatures.reduce(
-    (acc, feature) => acc + feature.price,
-    0
-  );
+  // const totalExtraFeaturesCost = extraFeatures.reduce(
+  //   (acc, feature) => acc + feature.price,
+  //   0
+  // );
 
-  const totalExtraPrice = Number(totalExtraFeaturesCost.toFixed(2));
-  const totalExistingPrice = Number(existingOrder.totalPrice.toFixed(2));
-  const totalPrice = Number((totalExistingPrice + totalExtraPrice).toFixed(2));
+  // const totalExtraPrice = Number(totalExtraFeaturesCost.toFixed(2));
+  // const totalExistingPrice = Number(existingOrder.totalPrice.toFixed(2));
+  // const totalPrice = Number((totalExistingPrice + totalExtraPrice).toFixed(2));
 
-  const invoiceId = await generateInvoiceId();
+  // const invoiceId = await generateInvoiceId();
 
-  const result = await Order.findByIdAndUpdate(orderId, {
-    $set: {
-      additionalFeature: [...extraFeatures, ...existingOrder.additionalFeature],
-      totalPrice: totalPrice,
-    },
-    $push: {
-      transactionId: { $each: [paymentIntentId] },
-      invoiceId: { $each: [invoiceId] },
-    },
-  });
+  // const result = await Order.findByIdAndUpdate(orderId, {
+  //   $set: {
+  //     additionalFeature: [...extraFeatures, ...existingOrder.additionalFeature],
+  //     totalPrice: totalPrice,
+  //   },
+  //   $push: {
+  //     transactionId: { $each: [paymentIntentId] },
+  //     invoiceId: { $each: [invoiceId] },
+  //   },
+  // });
 
-  const { dateString } = dateFormatter.getDates();
+  // const { dateString } = dateFormatter.getDates();
 
-  const newInvoice = {
-    date: dateString,
-    invoiceId: invoiceId,
-    transactionId: paymentIntentId,
-    orderId: existingOrder.orderId,
-    packageId: existingOrder.packageId,
-    name: `${existingOrder.contactDetails?.firstName} ${existingOrder.contactDetails?.lastName}`,
-    email: existingUser.email || existingOrder.additionalEmail,
-    phone: existingOrder.contactDetails?.phone,
-    country: existingOrder.contactDetails?.country,
-    packageTitle: existingPackage?.title,
-    type: "add ons",
-    items: [...extraFeatures],
-    subtotal: totalExtraPrice,
-    packagePrice: 0,
-    total: totalExtraPrice,
-  };
+  // const newInvoice = {
+  //   date: dateString,
+  //   invoiceId: invoiceId,
+  //   transactionId: paymentIntentId,
+  //   orderId: existingOrder.orderId,
+  //   packageId: existingOrder.packageId,
+  //   name: `${existingOrder.contactDetails?.firstName} ${existingOrder.contactDetails?.lastName}`,
+  //   email: existingUser.email || existingOrder.additionalEmail,
+  //   phone: existingOrder.contactDetails?.phone,
+  //   country: existingOrder.contactDetails?.country,
+  //   packageTitle: existingPackage?.title,
+  //   type: "add ons",
+  //   items: [...extraFeatures],
+  //   subtotal: totalExtraPrice,
+  //   packagePrice: 0,
+  //   total: totalExtraPrice,
+  // };
 
-  const createdInvoice = await Invoice.create(newInvoice);
+  // const createdInvoice = await Invoice.create(newInvoice);
 
-  const systemData = await System.findOne({ systemId: "system-1" });
+  // const systemData = await System.findOne({ systemId: "system-1" });
 
-  if (existingOrder.additionalEmail !== existingOrder?.email) {
-    await sendOrderInvoiceToCustomer(
-      newInvoice,
-      existingOrder?.email,
-      systemData.logo
-    );
-    await sendOrderInvoiceToCustomer(
-      newInvoice,
-      existingOrder?.additionalEmail,
-      systemData.logo
-    );
-  }
+  // if (existingOrder.additionalEmail !== existingOrder?.email) {
+  //   await sendOrderInvoiceToCustomer(
+  //     newInvoice,
+  //     existingOrder?.email,
+  //     systemData.logo
+  //   );
+  //   await sendOrderInvoiceToCustomer(
+  //     newInvoice,
+  //     existingOrder?.additionalEmail,
+  //     systemData.logo
+  //   );
+  // }
 
-  await sendOrderInvoiceToCustomer(
-    newInvoice,
-    existingOrder?.email,
-    systemData.logo
-  );
+  // await sendOrderInvoiceToCustomer(
+  //   newInvoice,
+  //   existingOrder?.email,
+  //   systemData.logo
+  // );
 
-  return result;
+  // return result;
 };
 
 const updateOrderMessageAction = async (payload) => {
@@ -876,193 +876,193 @@ const getOneOrder = async (id, userId) => {
 };
 
 const orderSubmission = async (payload, userId) => {
-  const {
-    userId: givenUserId,
-    packageId,
-    category,
-    paymentIntentId,
-    contactDetails,
-    additionalEmail,
-    requirements = [],
-    referredImages = [],
-    preferredColors = [],
-    preferredDesigns = [],
-    selectedAdditionalFeats = [],
-    selectedAdditionalRevision = [],
-    selectedAdditionalDeliveryTime = [],
-    selectedProgrammingLang = [],
-  } = payload;
+  // const {
+  //   userId: givenUserId,
+  //   packageId,
+  //   category,
+  //   paymentIntentId,
+  //   contactDetails,
+  //   additionalEmail,
+  //   requirements = [],
+  //   referredImages = [],
+  //   preferredColors = [],
+  //   preferredDesigns = [],
+  //   selectedAdditionalFeats = [],
+  //   selectedAdditionalRevision = [],
+  //   selectedAdditionalDeliveryTime = [],
+  //   selectedProgrammingLang = [],
+  // } = payload;
 
-  const isOrderExist = await Order.findOne({
-    transactionId: { $in: [paymentIntentId] },
-  });
+  // const isOrderExist = await Order.findOne({
+  //   transactionId: { $in: [paymentIntentId] },
+  // });
 
-  if (isOrderExist) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Order already created!");
-  }
+  // if (isOrderExist) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, "Order already created!");
+  // }
 
-  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+  // const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-  if (givenUserId !== userId) {
-    throw new ApiError(httpStatus.FORBIDDEN, "User ID doesn't match!");
-  }
+  // if (givenUserId !== userId) {
+  //   throw new ApiError(httpStatus.FORBIDDEN, "User ID doesn't match!");
+  // }
 
-  const existingUser = await User.findOne({ userId: givenUserId });
+  // const existingUser = await User.findOne({ userId: givenUserId });
 
-  if (!existingUser) {
-    throw new ApiError(httpStatus.FORBIDDEN, "User doesn't exist!");
-  }
+  // if (!existingUser) {
+  //   throw new ApiError(httpStatus.FORBIDDEN, "User doesn't exist!");
+  // }
 
-  const existingPackage = await Package.findOne({ packageId });
+  // const existingPackage = await Package.findOne({ packageId });
 
-  if (!existingPackage) {
-    throw new ApiError(httpStatus.FORBIDDEN, "Package doesn't exist!");
-  }
+  // if (!existingPackage) {
+  //   throw new ApiError(httpStatus.FORBIDDEN, "Package doesn't exist!");
+  // }
 
-  const { UTC, dateString } = dateFormatter.getDates();
+  // const { UTC, dateString } = dateFormatter.getDates();
 
-  const packagePrice = packagePriceConversion(existingPackage);
+  // const packagePrice = packagePriceConversion(existingPackage);
 
-  const additionalFeatsPrice = calculateAdditionalItemPrice(
-    selectedAdditionalFeats
-  );
+  // const additionalFeatsPrice = calculateAdditionalItemPrice(
+  //   selectedAdditionalFeats
+  // );
 
-  const additionalRevisionPrice = calculateAdditionalItemPrice(
-    selectedAdditionalRevision
-  );
+  // const additionalRevisionPrice = calculateAdditionalItemPrice(
+  //   selectedAdditionalRevision
+  // );
 
-  const additionalDeliveryPrice = calculateAdditionalItemPrice(
-    selectedAdditionalDeliveryTime
-  );
+  // const additionalDeliveryPrice = calculateAdditionalItemPrice(
+  //   selectedAdditionalDeliveryTime
+  // );
 
-  const additionalProgrammingLangPrice = calculateAdditionalItemPrice(
-    selectedProgrammingLang
-  );
+  // const additionalProgrammingLangPrice = calculateAdditionalItemPrice(
+  //   selectedProgrammingLang
+  // );
 
-  const totalPrice = Number(
-    (
-      packagePrice +
-      additionalFeatsPrice +
-      additionalRevisionPrice +
-      additionalDeliveryPrice +
-      additionalProgrammingLangPrice
-    ).toFixed(2)
-  );
+  // const totalPrice = Number(
+  //   (
+  //     packagePrice +
+  //     additionalFeatsPrice +
+  //     additionalRevisionPrice +
+  //     additionalDeliveryPrice +
+  //     additionalProgrammingLangPrice
+  //   ).toFixed(2)
+  // );
 
-  const { featuredRevision, featuredDeliveryTime } = existingPackage;
+  // const { featuredRevision, featuredDeliveryTime } = existingPackage;
 
-  const totalRevision = calculateRevisionCount(
-    +featuredRevision?.split(" ")[0],
-    selectedAdditionalRevision
-  );
+  // const totalRevision = calculateRevisionCount(
+  //   +featuredRevision?.split(" ")[0],
+  //   selectedAdditionalRevision
+  // );
 
-  const { deliveryDateUTC, deliveryDateString } = calculateDeliveryDate(
-    +featuredDeliveryTime?.split(" ")[0],
-    selectedAdditionalDeliveryTime
-  );
+  // const { deliveryDateUTC, deliveryDateString } = calculateDeliveryDate(
+  //   +featuredDeliveryTime?.split(" ")[0],
+  //   selectedAdditionalDeliveryTime
+  // );
 
-  const orderId = await generateOrderId();
-  const invoiceId = await generateInvoiceId();
+  // const orderId = await generateOrderId();
+  // const invoiceId = await generateInvoiceId();
 
-  const newOrder = {
-    user: existingUser._id,
-    package: existingPackage._id,
-    contactDetails: contactDetails,
-    invoiceId: [invoiceId],
-    orderId: orderId,
-    packageId: packageId,
-    userId: userId,
-    category: category,
-    paymentCurrency: paymentIntent.currency,
-    paymentStatus: paymentIntent.status,
-    email: existingUser.email,
-    orderStatus: "in progress",
-    additionalEmail: additionalEmail,
-    transactionId: [paymentIntentId],
-    referredImages: referredImages,
-    requirements: requirements,
-    preferredDesigns: preferredDesigns,
-    preferredColors: preferredColors,
-    additionalFeature: selectedAdditionalFeats,
-    additionalRevision: selectedAdditionalRevision,
-    additionalDeliveryTime: selectedAdditionalDeliveryTime,
-    additionalProgrammingLang: selectedProgrammingLang,
-    totalRevision: totalRevision,
-    usedRevision: 0,
-    packagePrice: packagePrice,
-    totalPrice: totalPrice,
-    orderDateUTC: UTC,
-    orderDateString: dateString,
-    deliveryDateUTC: deliveryDateUTC,
-    deliveryDateString: deliveryDateString,
-    paymentDateString: dateString,
-  };
+  // const newOrder = {
+  //   user: existingUser._id,
+  //   package: existingPackage._id,
+  //   contactDetails: contactDetails,
+  //   invoiceId: [invoiceId],
+  //   orderId: orderId,
+  //   packageId: packageId,
+  //   userId: userId,
+  //   category: category,
+  //   paymentCurrency: paymentIntent.currency,
+  //   paymentStatus: paymentIntent.status,
+  //   email: existingUser.email,
+  //   orderStatus: "in progress",
+  //   additionalEmail: additionalEmail,
+  //   transactionId: [paymentIntentId],
+  //   referredImages: referredImages,
+  //   requirements: requirements,
+  //   preferredDesigns: preferredDesigns,
+  //   preferredColors: preferredColors,
+  //   additionalFeature: selectedAdditionalFeats,
+  //   additionalRevision: selectedAdditionalRevision,
+  //   additionalDeliveryTime: selectedAdditionalDeliveryTime,
+  //   additionalProgrammingLang: selectedProgrammingLang,
+  //   totalRevision: totalRevision,
+  //   usedRevision: 0,
+  //   packagePrice: packagePrice,
+  //   totalPrice: totalPrice,
+  //   orderDateUTC: UTC,
+  //   orderDateString: dateString,
+  //   deliveryDateUTC: deliveryDateUTC,
+  //   deliveryDateString: deliveryDateString,
+  //   paymentDateString: dateString,
+  // };
 
-  const newInvoice = {
-    date: dateString,
-    invoiceId: invoiceId,
-    transactionId: paymentIntentId,
-    orderId: orderId,
-    packageId: packageId,
-    name: `${contactDetails?.firstName} ${contactDetails?.lastName}`,
-    email: existingUser.email || additionalEmail,
-    phone: contactDetails?.phone,
-    country: contactDetails?.country,
-    packageTitle: existingPackage?.title,
-    type: "new",
-    items: [
-      ...selectedAdditionalFeats,
-      ...selectedAdditionalRevision,
-      ...selectedAdditionalDeliveryTime,
-      ...selectedProgrammingLang,
-    ],
-    subtotal: totalPrice - packagePrice,
-    packagePrice: packagePrice,
-    total: totalPrice,
-  };
+  // const newInvoice = {
+  //   date: dateString,
+  //   invoiceId: invoiceId,
+  //   transactionId: paymentIntentId,
+  //   orderId: orderId,
+  //   packageId: packageId,
+  //   name: `${contactDetails?.firstName} ${contactDetails?.lastName}`,
+  //   email: existingUser.email || additionalEmail,
+  //   phone: contactDetails?.phone,
+  //   country: contactDetails?.country,
+  //   packageTitle: existingPackage?.title,
+  //   type: "new",
+  //   items: [
+  //     ...selectedAdditionalFeats,
+  //     ...selectedAdditionalRevision,
+  //     ...selectedAdditionalDeliveryTime,
+  //     ...selectedProgrammingLang,
+  //   ],
+  //   subtotal: totalPrice - packagePrice,
+  //   packagePrice: packagePrice,
+  //   total: totalPrice,
+  // };
 
-  const createdOrder = await Order.create(newOrder);
-  const createdInvoice = await Invoice.create(newInvoice);
+  // const createdOrder = await Order.create(newOrder);
+  // const createdInvoice = await Invoice.create(newInvoice);
 
-  const admin = await User.findOne({ role: config.super_admin_role });
+  // const admin = await User.findOne({ role: config.super_admin_role });
 
-  const createdConversation = await OrderConversation.create({
-    order: createdOrder._id,
-    creator: existingUser._id,
-    participant: admin._id,
-    lastUpdated: UTC,
-    messageType: "order",
-  });
+  // const createdConversation = await OrderConversation.create({
+  //   order: createdOrder._id,
+  //   creator: existingUser._id,
+  //   participant: admin._id,
+  //   lastUpdated: UTC,
+  //   messageType: "order",
+  // });
 
-  await Order.findOneAndUpdate(
-    { _id: createdOrder._id },
-    {
-      conversation: createdConversation._id,
-    }
-  );
+  // await Order.findOneAndUpdate(
+  //   { _id: createdOrder._id },
+  //   {
+  //     conversation: createdConversation._id,
+  //   }
+  // );
 
-  const systemData = await System.findOne({ systemId: "system-1" });
+  // const systemData = await System.findOne({ systemId: "system-1" });
 
-  if (createdOrder?.additionalEmail !== createdOrder?.email) {
-    await sendOrderInvoiceToCustomer(
-      newInvoice,
-      createdOrder?.email,
-      systemData.logo
-    );
-    await sendOrderInvoiceToCustomer(
-      newInvoice,
-      createdOrder?.additionalEmail,
-      systemData.logo
-    );
-  }
+  // if (createdOrder?.additionalEmail !== createdOrder?.email) {
+  //   await sendOrderInvoiceToCustomer(
+  //     newInvoice,
+  //     createdOrder?.email,
+  //     systemData.logo
+  //   );
+  //   await sendOrderInvoiceToCustomer(
+  //     newInvoice,
+  //     createdOrder?.additionalEmail,
+  //     systemData.logo
+  //   );
+  // }
 
-  await sendOrderInvoiceToCustomer(
-    newInvoice,
-    createdOrder?.email,
-    systemData.logo
-  );
+  // await sendOrderInvoiceToCustomer(
+  //   newInvoice,
+  //   createdOrder?.email,
+  //   systemData.logo
+  // );
 
-  return createdOrder;
+  // return createdOrder;
 };
 
 export const OrderService = {
