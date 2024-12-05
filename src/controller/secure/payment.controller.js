@@ -56,11 +56,10 @@ const createPaymentIntent = catchAsync(async (req, res) => {
 
 const stripeWebhookHandler = catchAsync(async (req, res) => {
   const sig = req.headers["stripe-signature"];
-  const data = req.rawBody; // Use rawBody for Stripe signature verification
+  const data = req.rawBody;
 
-  console.log("sig: ", sig);
+  // console.log("sig: ", sig);
   console.log("data: ", data);
-  // Log raw data for debugging
 
   await PaymentService.handleWebhookEvent(data, sig);
 

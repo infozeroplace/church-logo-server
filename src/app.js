@@ -41,8 +41,8 @@ app.use(bodyParser.json({
   }
 }));
 
-// app.use(express.urlencoded({ limit: "500mb", extended: true }));
-// app.use(express.static(path.join(__dirname, "public")));
+app.use(express.urlencoded({ limit: "500mb", extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/v1", routes);
 
