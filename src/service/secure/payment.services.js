@@ -110,7 +110,7 @@ const createPaymentIntent = async (payload, userId) => {
 };
 
 const handleWebhookEvent = async (data, sig) => {
-  const endpointSecret = "whsec_9012e447a6f83aa20bb01e54f987146fb35c1f293d1ebc0178f34012363cd14c";
+  const endpointSecret = "whsec_YM6ywEGYHv1rm3jPIgLXFG7cLUZyK2LE";
 
   const event = stripe.webhooks.constructEvent(data, sig, endpointSecret);
 
