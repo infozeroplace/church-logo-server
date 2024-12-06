@@ -9,6 +9,7 @@ import { corsOptions } from "./constant/common.constant.js";
 import globalErrorHandler from "./middleware/globalErrorHandler.js";
 import routes from "./routes/index.js";
 import bodyParser from 'body-parser';
+import { clearTemporaryOrdersCron } from "./cron/clearTemporaryOrders.js";
 
 const app = express();
 
@@ -34,6 +35,8 @@ app.use(
 
 app.use(express.urlencoded({ limit: "500mb", extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
+
+clearTemporaryOrdersCron();
 
 app.use("/api/v1", routes);
 
