@@ -152,10 +152,14 @@ const handleWebhookEvent = async (data, sig) => {
         extraFeatures: metadata.extraFeatures
       });
     }
+
+    return;
   } else if (event.type === "payment_intent.payment_failed") {
     await TemporaryOrder.deleteOne({ orderId });
+    return;
   } else if (event.type === "payment_intent.canceled") {
     await TemporaryOrder.deleteOne({ orderId });
+    return;
   }
 };
 
