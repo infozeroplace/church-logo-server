@@ -122,44 +122,24 @@ const getPackageList = async (filters, paginationOptions) => {
   };
 };
 
-  // const result = await Package.findOneAndUpdate(
-  //   { packageId },
-  //   { $set: { ...data } },
-  //   { new: true, upsert: true }
-  // );
-
-  // return result;
-
 const editPackage = async (payload) => {
   const { packageId, ...data } = payload;
 
-  // Log the original title
-  console.log("Original Title:", data.title);
-
-  // Clean and format the title
-  const formattedTitle = data.title
-    .replace(/[^a-zA-Z0-9\s]/g, "") // Remove symbols except letters, numbers, and spaces
-    .trim()                            // Remove extra spaces from start and end
-    .replace(/\s+/g, "-")           // Replace spaces with hyphens
-    .toLowerCase();                    // Convert to lowercase
-
-  console.log("Formatted Title:", formattedTitle);
-
-  // Update the package with the formatted title
   const result = await Package.findOneAndUpdate(
     { packageId },
-    {
-      $set: {
-        packageId: formattedTitle,
-      },
-    }
+    { $set: { ...data } },
+    { new: true, upsert: true }
   );
 
   return result;
 };
 
 const addPackage = async (payload) => {
-  const packageId = await generatePackageId();
+  const packageId = await generatePackageId(payload);
+
+  if (!packageId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Package Id exists");
+  }
 
   const result = await Package.create({ packageId, ...payload });
 

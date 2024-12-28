@@ -1,22 +1,21 @@
-import { v4 as uuidv4 } from "uuid";
 import { Package } from "../model/package.model.js";
 
-const generatePackageId = async () => {
-  let isUnique = false;
-  let result;
+const generatePackageId = async (data) => {
 
-  while (!isUnique) {
-    result = uuidv4().trim();
+  const formattedTitle = data.title
+    .replace(/[^a-zA-Z0-9\s]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .toLowerCase();
 
-    // Check if the packageId already exists in the collection
-    const existingPackage = await Package.findOne({ packageId: result });
+  // Check if the packageId already exists in the collection
+  const existingPackage = await Package.findOne({ packageId: formattedTitle });
 
-    if (!existingPackage) {
-      isUnique = true;
-    }
+  if (!existingPackage) {
+    return formattedTitle;
   }
 
-  return result;
+  return false;
 };
 
 export default generatePackageId;
