@@ -13,7 +13,10 @@ import { ReviewRoutes } from "./review.routes.js";
 import { SystemRoutes } from "./system.routes.js";
 import { TaskRoutes } from "./task.routes.js";
 import { InvoiceRoutes } from "./invoice.routes.js";
+import { UploadRoutes } from "./upload.routes.js";
 const router = express.Router();
+
+router.use(UploadRoutes);
 
 router.use(InvoiceRoutes);
 

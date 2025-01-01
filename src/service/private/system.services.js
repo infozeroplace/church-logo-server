@@ -3,6 +3,7 @@ import ApiError from "../../error/ApiError.js";
 import cloudinary from "../../middleware/cloudinary.js";
 import { Package } from "../../model/package.model.js";
 import { System } from "../../model/system.model.js";
+import { removeImage } from "../../utils/fileSystem.js";
 
 const getCategoryServices = async (query) => {
   const allPackagesByCategory = await Package.find({
@@ -117,6 +118,8 @@ const updateLogo = async (payload) => {
 
     return result;
   } else {
+    // await removeImage(existing.logo);
+
     const result = await System.findOneAndUpdate(
       {
         systemId: "system-1",
@@ -1070,12 +1073,12 @@ const updateHomeSettings = async (payload) => {
     return result;
   } else {
     const filtered = existing?.homeSettings?.bannerImages.filter(
-      (item) => !payload.bannerImages.some((item2) => item2.uid === item.uid)
+      (item) => !payload.bannerImages.some((item2) => item2.url === item.url)
     );
 
     if (filtered.length) {
       for (const item of filtered) {
-        await cloudinary.v2.uploader.destroy(item.publicId);
+        await removeImage(item.url);
       }
     }
 

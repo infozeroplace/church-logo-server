@@ -123,10 +123,8 @@ const updatePrivacyPolicyZodSchema = z.object({
 });
 
 const bannerImage = z.object({
-  uid: z.string(),
   url: z.string(),
   serialId: z.number(),
-  publicId: z.string(),
 });
 
 const homeSettingsZodSchema = z.object({
