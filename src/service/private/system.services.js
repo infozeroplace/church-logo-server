@@ -1072,36 +1072,39 @@ const updateHomeSettings = async (payload) => {
 
     return result;
   } else {
-    const result = await System.findOneAndUpdate(
-      {
-        systemId: "system-1",
-      },
-      {
-        $set: {
-          homeSettings: {
-            ...existing?.homeSettings,
-            ...payload,
-          },
-        },
-      },
+    console.log(existing?.homeSettings?.bannerImages)
+    console.log(payload.bannerImages)
 
-      { new: true } // Return the updated document
-    );
+    // const result = await System.findOneAndUpdate(
+    //   {
+    //     systemId: "system-1",
+    //   },
+    //   {
+    //     $set: {
+    //       homeSettings: {
+    //         ...existing?.homeSettings,
+    //         ...payload,
+    //       },
+    //     },
+    //   },
 
-    if (!result)
-      throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+    //   { new: true } // Return the updated document
+    // );
 
-    const filtered = existing?.homeSettings?.bannerImages.filter(
-      (item) => !payload.bannerImages.some((item2) => item2.url === item.url)
-    );
+    // if (!result)
+    //   throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
-    if (filtered.length) {
-      for (const item of filtered) {
-        await removeImage(item.url);
-      }
-    }
+    // const filtered = existing?.homeSettings?.bannerImages.filter(
+    //   (item) => !payload.bannerImages.some((item2) => item2.url === item.url)
+    // );
 
-    return result;
+    // if (filtered.length) {
+    //   for (const item of filtered) {
+    //     await removeImage(item.url);
+    //   }
+    // }
+
+    // return result;
   }
 };
 
