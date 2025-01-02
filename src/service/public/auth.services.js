@@ -12,6 +12,7 @@ import {
   sendAdminForgotPasswordLink,
   sendEmailVerificationLink,
   sendForgotPasswordLink,
+  welcomeMessage,
 } from "../../shared/nodeMailer.js";
 import { generateUserId } from "../../utils/generateUserId.js";
 
@@ -506,6 +507,7 @@ const googleLogin = async (code) => {
     createdUser.isPasswordHas = createdUser.password ? true : false;
 
     await getNotifiedNewRegistration(createdUser, admin.email);
+    await welcomeMessage(createdUser);
 
     return {
       accessToken,

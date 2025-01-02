@@ -199,11 +199,11 @@ export const sendForgotPasswordLink = async (email, name, token) => {
         <footer style="margin-top: 40px; font-size: 14px; color: #777;">
             <p style="margin: 0;">For further assistance, contact us at:</p>
             <a 
-              href="mailto:contact@churchlogo.co" 
+              href="mailto:${config.contact_mail_address}" 
               target="_blank" 
               style="color: #348edb; text-decoration: none; font-weight: bold;"
             >
-              support@churchlogo.co
+              ${config.contact_mail_address}
             </a>
             <p style="margin: 10px 0 0;">
               <a 
@@ -305,6 +305,57 @@ export const getNotifiedNewRegistration = async (newUser, adminEmail) => {
         <p>Name: ${newUser.firstName} ${newUser.lastName}</p>
         <p>Email: ${newUser.email}</p>
         <p>Google sign-up: ${newUser.isGoogleLogin ? "Yes" : "No"}</p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return info;
+  } catch (error) {
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      "Internal Server Error"
+    );
+  }
+};
+
+export const welcomeMessage = async (newUser) => {
+  const mailOptions = {
+    from: `"ChurchLogo" <${config.support_mail_address}>`,
+    to: newUser.email,
+    subject: "Welcome to ChurchLogo - Your Branding Partner!",
+    html: `
+      <div style="width: 100%; padding: 20px; font-size: 16px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="text-align: center; color: #4CAF50;">Welcome to ChurchLogo!</h2>
+        <p>Dear ${newUser.firstName} ${newUser.lastName},</p>
+        <p>We are thrilled to have you as part of the ChurchLogo family! Our mission is to help churches like yours bring their vision to life through exceptional branding and design. Whether you're looking for logos, banners, or other creative assets, we’re here to support you every step of the way.</p>
+        
+        <h3>Here are your registration details:</h3>
+        <p><strong>User ID:</strong> ${newUser.userId}</p>
+        <p><strong>Email:</strong> ${newUser.email}</p>
+        
+        <h3>What’s Next?</h3>
+        <p>Feel free to explore our services and resources tailored for your church's unique needs. If you have any questions or need assistance, our support team is here for you.</p>
+        
+        <h3>Contact Us Anytime</h3>
+        <p>Email:
+         <a 
+            href="mailto:${config.contact_mail_address}" 
+            target="_blank" 
+            style="color: #348edb; text-decoration: none; font-weight: bold;"
+          >
+          ${config.contact_mail_address}
+          </a>
+        </p>
+        
+        <p style="text-align: center; color: #555;">Thank you for trusting us to be part of your journey. Together, we’ll create something truly meaningful.</p>
+        
+        <p style="text-align: center; font-size: 14px; color: #777;">With blessings,</p>
+        <p style="text-align: center; font-size: 16px; color: #4CAF50;"><strong>The ChurchLogo Team</strong></p>
+        
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+        <p style="font-size: 12px; text-align: center; color: #888;">If you did not sign up for ChurchLogo, please contact us immediately.</p>
       </div>
     `,
   };
