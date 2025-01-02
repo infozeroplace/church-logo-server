@@ -363,6 +363,8 @@ const updateCategoryThumbnail = async (payload) => {
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
+    await removeImage(existing.categorySettings[categoryTitle]);
+
     return result;
   }
 };
@@ -933,13 +935,8 @@ const updateHomeCategoryThumbnailSettings = async (payload) => {
     systemId: "system-1",
   });
 
-  const result = await cloudinary.v2.uploader.upload(payload.path, {
-    folder: "church-logo/home/category-thumbnail",
-    use_filename: true,
-  });
-
   const data = {
-    [payload.category]: result.secure_url,
+    [payload.category]: payload.url,
   };
 
   if (!existing) {
@@ -970,6 +967,8 @@ const updateHomeCategoryThumbnailSettings = async (payload) => {
 
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+
+    await removeImage(existing.homeSettings[payload.category]);
 
     return result;
   }

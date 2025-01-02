@@ -83,6 +83,9 @@ const homeCategoryThumbnailSettingsZodSchema = z.object({
     category: z.string({
       required_error: "Category is required",
     }),
+    url: z.string({
+      required_error: "URL is required",
+    }),
   }),
 });
 

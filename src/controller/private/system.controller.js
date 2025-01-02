@@ -306,16 +306,8 @@ const updateHomeServiceSettings = catchAsync(async (req, res) => {
 
 const updateHomeCategoryThumbnailSettings = catchAsync(async (req, res) => {
   const { ...data } = req.body;
-  const { ...file } = req.file;
 
-  const payload = {
-    ...data,
-    ...file,
-  };
-
-  const result = await SystemService.updateHomeCategoryThumbnailSettings(
-    payload
-  );
+  const result = await SystemService.updateHomeCategoryThumbnailSettings(data);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
