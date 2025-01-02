@@ -1095,17 +1095,11 @@ const updateHomeSettings = async (payload) => {
       (item) => !payload.bannerImages.some((item2) => item2.url === item.url)
     );
 
-    console.log("existing?.homeSettings?.bannerImages ", existing?.homeSettings?.bannerImages)
-    console.log("payload.bannerImages ", payload.bannerImages)
-    console.log("filtered ", filtered)
-
     if (filtered.length) {
       for (const item of filtered) {
         await removeImage(item.url);
       }
     }
-
-    console.log(result?.homeSettings?.bannerImages)
 
     return result;
   }
