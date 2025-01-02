@@ -8,6 +8,7 @@ import { jwtHelpers } from "../../helper/jwtHelpers.js";
 import { Conversation, Message } from "../../model/chat.model.js";
 import User from "../../model/user.model.js";
 import {
+  getNotifiedNewRegistration,
   sendAdminForgotPasswordLink,
   sendEmailVerificationLink,
   sendForgotPasswordLink,
@@ -220,6 +221,8 @@ const register = async (payload) => {
 
   // Remove the password
   createdUser.password = undefined;
+
+  await getNotifiedNewRegistration(createdUser, admin.email);
 
   return {
     accessToken,
@@ -501,6 +504,8 @@ const googleLogin = async (code) => {
     );
 
     createdUser.isPasswordHas = createdUser.password ? true : false;
+
+    await getNotifiedNewRegistration(createdUser, admin.email);
 
     return {
       accessToken,

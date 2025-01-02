@@ -230,7 +230,6 @@ export const sendForgotPasswordLink = async (email, name, token) => {
   }
 };
 
-
 export const sendAdminForgotPasswordLink = async (email, name, token) => {
   const mailOptions = {
     from: `"ChurchLogo" <${config.support_mail_address}>`,
@@ -294,3 +293,29 @@ export const sendAdminForgotPasswordLink = async (email, name, token) => {
   }
 };
 
+export const getNotifiedNewRegistration = async (newUser, adminEmail) => {
+  const mailOptions = {
+    from: `"ChurchLogo" <${config.support_mail_address}>`,
+    to: adminEmail,
+    subject: "New Registration",
+    html: `
+      <div style="width: 100%; padding: 20px; font-size: 16px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h3>Customer Information</h3>
+        <p>User ID: ${newUser.userId}</p>
+        <p>Name: ${newUser.firstName} ${newUser.lastName}</p>
+        <p>Email: ${newUser.email}</p>
+        <p>Google sign-up: ${newUser.isGoogleLogin ? "Yes" : "No"}</p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return info;
+  } catch (error) {
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      "Internal Server Error"
+    );
+  }
+};
