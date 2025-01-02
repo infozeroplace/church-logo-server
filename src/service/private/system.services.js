@@ -118,7 +118,7 @@ const updateLogo = async (payload) => {
 
     return result;
   } else {
-    // await removeImage(existing.logo);
+    await removeImage(existing.logo);
 
     const result = await System.findOneAndUpdate(
       {
