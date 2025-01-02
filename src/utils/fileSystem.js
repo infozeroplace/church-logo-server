@@ -9,7 +9,7 @@ export const removeImage = async (filename) => {
   const filePath = path.join(publicFolder, filename);
 
     if (!fs.existsSync(filePath)) {
-      throw new ApiError(httpStatus.BAD_REQUEST, "File does not exist");
+      return;
     }
 
   await fs.promises.unlink(filePath);
