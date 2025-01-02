@@ -1072,9 +1072,6 @@ const updateHomeSettings = async (payload) => {
 
     return result;
   } else {
-    console.log(existing?.homeSettings?.bannerImages)
-    console.log(payload.bannerImages)
-
     // const result = await System.findOneAndUpdate(
     //   {
     //     systemId: "system-1",
@@ -1094,9 +1091,13 @@ const updateHomeSettings = async (payload) => {
     // if (!result)
     //   throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
-    // const filtered = existing?.homeSettings?.bannerImages.filter(
-    //   (item) => !payload.bannerImages.some((item2) => item2.url === item.url)
-    // );
+    const filtered = existing?.homeSettings?.bannerImages.filter(
+      (item) => !payload.bannerImages.some((item2) => item2.url === item.url)
+    );
+
+    console.log("existing?.homeSettings?.bannerImages ", existing?.homeSettings?.bannerImages)
+    console.log("payload.bannerImages ", payload.bannerImages)
+    console.log("filtered ", filtered)
 
     // if (filtered.length) {
     //   for (const item of filtered) {
