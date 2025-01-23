@@ -91,7 +91,6 @@ router.get(
 router.put(
   "/system/update-order-settings",
   auth(ENUM_USER_ROLE.SUPER_ADMIN),
-  validateRequest(SystemValidation.orderSettingsZodSchema),
   SystemController.updateOrderSettings
 );
 

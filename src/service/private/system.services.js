@@ -40,16 +40,27 @@ const getCategoryServices = async (query) => {
 };
 
 const updateContactUsSettings = async (payload) => {
+  const { title1, title2, paragraph, thumbnail, background } = payload;
+
   const existing = await System.findOne({
     systemId: "system-1",
   });
+
   if (!existing) {
     const result = await System.create({
       systemId: "system-1",
-      contactUsSettings: payload,
+      contactUsSettings: {
+        title1,
+        title2,
+        paragraph,
+        thumbnail,
+        background,
+      },
     });
+
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+
     return result;
   } else {
     const result = await System.findOneAndUpdate(
@@ -57,12 +68,29 @@ const updateContactUsSettings = async (payload) => {
         systemId: "system-1",
       },
       {
-        $set: { contactUsSettings: payload },
+        $set: {
+          contactUsSettings: {
+            title1,
+            title2,
+            paragraph,
+            thumbnail,
+            background,
+          },
+        },
       },
       { new: true }
     );
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+
+    const existedCntUs = existing.contactUsSettings || {};
+
+    if (existedCntUs.thumbnail !== thumbnail)
+      await removeImage(existedCntUs.thumbnail);
+
+    if (existedCntUs.background !== background)
+      await removeImage(existedCntUs.background);
+
     return result;
   }
 };
@@ -445,22 +473,12 @@ const getSystemConfiguration = async (payload) => {
   } else {
     let obj = result.toObject();
 
-    const sortedDesignSample = obj?.orderSettings?.designSample.sort(
-      (a, b) => a?.serialId - b?.serialId
-    );
-    const sortedColorSample = obj?.orderSettings?.colorSample.sort(
-      (a, b) => a?.serialId - b?.serialId
-    );
     const sortedBannerImages = obj?.homeSettings?.bannerImages.sort(
       (a, b) => a?.serialId - b?.serialId
     );
 
     obj = {
       ...obj,
-      orderSettings: {
-        designSample: sortedDesignSample,
-        colorSample: sortedColorSample,
-      },
       homeSettings: {
         ...obj?.homeSettings,
         bannerImages: sortedBannerImages,
@@ -475,59 +493,66 @@ const updateOrderSettings = async (payload) => {
   const { designSample, psDesignSample, colorSample } = payload;
 
   // Find existing system by systemId
-  let system = await System.findOne({ systemId: "system-1" });
+  const existing = await System.findOne({ systemId: "system-1" });
 
   // If the system does not exist, create a new one
-  if (!system) {
-    system = await System.create({
+  if (!existing) {
+    const result = await System.create({
       systemId: "system-1",
-      orderSettings: payload,
+      orderSettings: {
+        designSample,
+        psDesignSample,
+        colorSample,
+      },
     });
 
-    if (!system) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        "Failed to create system settings"
-      );
-    }
+    if (!result)
+      throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
-    return system; // Return the newly created system document
-  }
-
-  // Helper function to filter and delete from Cloudinary
-  const filterAndDelete = async (existingSamples, newSamples) => {
-    const filteredSamples = existingSamples?.filter(
-      (item) => !newSamples.some((newItem) => newItem.uid === item.uid)
+    return result;
+  } else {
+    const result = await System.findOneAndUpdate(
+      { systemId: "system-1" },
+      {
+        $set: {
+          orderSettings: {
+            designSample,
+            psDesignSample,
+            colorSample,
+          },
+        },
+      },
+      { new: true }
     );
 
-    if (filteredSamples?.length) {
-      for (const item of filteredSamples) {
-        // Deleting the item from Cloudinary
-        await cloudinary.v2.uploader.destroy(item.publicId);
+    if (!result)
+      throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+
+    const removeSamples = async (oldSamples, newSamples) => {
+      for (const sample of oldSamples) {
+        const shouldRemoved = newSamples.find(
+          (item) => item.url === sample.url
+        );
+
+        if (!shouldRemoved) await removeImage(sample.url);
       }
-    }
-  };
+    };
 
-  // Handle existing samples if system exists
-  await filterAndDelete(system?.orderSettings?.designSample, designSample);
-  await filterAndDelete(system?.orderSettings?.psDesignSample, psDesignSample);
-  await filterAndDelete(system?.orderSettings?.colorSample, colorSample);
-
-  // Update order settings with the new payload
-  const updatedSystem = await System.findOneAndUpdate(
-    { systemId: "system-1" },
-    { orderSettings: payload },
-    { new: true }
-  );
-
-  if (!updatedSystem) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "Failed to update system settings"
+    await removeSamples(
+      existing.orderSettings.designSample || [],
+      designSample || []
     );
-  }
+    await removeSamples(
+      existing.orderSettings.psDesignSample || [],
+      psDesignSample || []
+    );
+    await removeSamples(
+      existing.orderSettings.colorSample || [],
+      colorSample || []
+    );
 
-  return updatedSystem; // Return the updated system document
+    return result;
+  }
 };
 
 const updateHomePersonalSignatureSettings = async (payload) => {
