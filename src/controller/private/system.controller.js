@@ -187,15 +187,8 @@ const updateOrderSettings = catchAsync(async (req, res) => {
 });
 
 const updateHomePersonalSignatureSettings = catchAsync(async (req, res) => {
-  const { ...data } = req.body;
-
-  const payload = {
-    data: data,
-    file: req.file,
-  };
-
   const result = await SystemService.updateHomePersonalSignatureSettings(
-    payload
+    req.body
   );
 
   return sendResponse(res, {
@@ -208,14 +201,7 @@ const updateHomePersonalSignatureSettings = catchAsync(async (req, res) => {
 });
 
 const updateHomeCustomersDoingSettings = catchAsync(async (req, res) => {
-  const { ...data } = req.body;
-
-  const payload = {
-    data: data,
-    files: req.files,
-  };
-
-  const result = await SystemService.updateHomeCustomersDoingSettings(payload);
+  const result = await SystemService.updateHomeCustomersDoingSettings(req.body);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -227,14 +213,7 @@ const updateHomeCustomersDoingSettings = catchAsync(async (req, res) => {
 });
 
 const updateHomeShowCaseLogoSettings = catchAsync(async (req, res) => {
-  const { ...data } = req.body;
-
-  const payload = {
-    data: data,
-    files: req.files,
-  };
-
-  const result = await SystemService.updateHomeShowCaseLogoSettings(payload);
+  const result = await SystemService.updateHomeShowCaseLogoSettings(req.body);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -246,21 +225,14 @@ const updateHomeShowCaseLogoSettings = catchAsync(async (req, res) => {
 });
 
 const updateHomeZeroPlacePromotionalSettings = catchAsync(async (req, res) => {
-  const { ...data } = req.body;
-
-  const payload = {
-    data: data,
-    files: req.files,
-  };
-
   const result = await SystemService.updateHomeZeroPlacePromotionalSettings(
-    payload
+    req.body
   );
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Home portfolio updated successfully!",
+    message: "Updated successfully!",
     meta: null,
     data: result,
   });
