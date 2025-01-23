@@ -206,6 +206,9 @@ const updateContactUsThumbnail = async (payload) => {
       { new: true }
     );
 
+    if (existing.contactUsThumbnail)
+      await removeImage(existing.contactUsThumbnail);
+
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
@@ -528,16 +531,7 @@ const updateOrderSettings = async (payload) => {
 };
 
 const updateHomePersonalSignatureSettings = async (payload) => {
-  const { data, file } = payload;
-
-  if (file) {
-    const result = await cloudinary.v2.uploader.upload(file.path, {
-      folder: "church-logo/home/personal-signature-thumbnail",
-      use_filename: true,
-    });
-
-    data.thumbnail = [{ url: result.secure_url }];
-  }
+  const { title, points, thumbnail } = payload;
 
   const existing = await System.findOne({
     systemId: "system-1",
@@ -546,7 +540,13 @@ const updateHomePersonalSignatureSettings = async (payload) => {
   if (!existing) {
     const result = await System.create({
       systemId: "system-1",
-      homeSettings: data,
+      homeSettings: {
+        personalSignature: {
+          title,
+          points,
+          thumbnail,
+        },
+      },
     });
 
     if (!result)
@@ -563,8 +563,9 @@ const updateHomePersonalSignatureSettings = async (payload) => {
           homeSettings: {
             ...existing?.homeSettings,
             personalSignature: {
-              ...existing?.homeSettings?.personalSignature,
-              ...data,
+              title,
+              points,
+              thumbnail,
             },
           },
         },
@@ -575,34 +576,18 @@ const updateHomePersonalSignatureSettings = async (payload) => {
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
+    const existingThumbnail =
+      existing.homeSettings.personalSignature.thumbnail[0].url || "";
+
+    if (existingThumbnail !== thumbnail[0].url)
+      await removeImage(existingThumbnail);
+
     return result;
   }
 };
 
 const updateHomeCustomersDoingSettings = async (payload) => {
-  const { data, files } = payload;
-
-  data.slideImages = (data.slideImages || []).map((slide) => {
-    let parsedSlideImg = slide;
-    if (typeof slide === "string") {
-      parsedSlideImg = JSON.parse(slide);
-    }
-    return parsedSlideImg;
-  });
-
-  if (files.length) {
-    const uploadedImages = await Promise.all(
-      files.map(async (file) => {
-        const result = await cloudinary.v2.uploader.upload(file.path, {
-          folder: "church-logo/home/customers-doing",
-          use_filename: true,
-        });
-        return { url: result.secure_url };
-      })
-    );
-
-    data.slideImages = [...data.slideImages, ...uploadedImages];
-  }
+  const { title, slideImages } = payload;
 
   const existing = await System.findOne({
     systemId: "system-1",
@@ -611,7 +596,12 @@ const updateHomeCustomersDoingSettings = async (payload) => {
   if (!existing) {
     const result = await System.create({
       systemId: "system-1",
-      homeSettings: data,
+      homeSettings: {
+        customersDoing: {
+          title,
+          slideImages,
+        },
+      },
     });
 
     if (!result)
@@ -628,8 +618,8 @@ const updateHomeCustomersDoingSettings = async (payload) => {
           homeSettings: {
             ...existing?.homeSettings,
             customersDoing: {
-              ...existing?.homeSettings?.customersDoing,
-              ...data,
+              title,
+              slideImages,
             },
           },
         },
@@ -640,34 +630,24 @@ const updateHomeCustomersDoingSettings = async (payload) => {
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
+    const existingSlideImages =
+      existing.homeSettings.customersDoing.slideImages || [];
+
+    // Remove old images if the URL has changed
+    for (const existingSlideImage of existingSlideImages) {
+      const shouldRemoved = slideImages.find(
+        (item) => item.url === existingSlideImage.url
+      );
+
+      if (!shouldRemoved) await removeImage(existingSlideImage.url);
+    }
+
     return result;
   }
 };
 
 const updateHomeShowCaseLogoSettings = async (payload) => {
-  const { data, files } = payload;
-
-  data.slideImages = (data.slideImages || []).map((slide) => {
-    let parsedSlideImg = slide;
-    if (typeof slide === "string") {
-      parsedSlideImg = JSON.parse(slide);
-    }
-    return parsedSlideImg;
-  });
-
-  if (files.length) {
-    const uploadedImages = await Promise.all(
-      files.map(async (file) => {
-        const result = await cloudinary.v2.uploader.upload(file.path, {
-          folder: "church-logo/home/showcase",
-          use_filename: true,
-        });
-        return { url: result.secure_url };
-      })
-    );
-
-    data.slideImages = [...data.slideImages, ...uploadedImages];
-  }
+  const { title, slideImages } = payload;
 
   const existing = await System.findOne({
     systemId: "system-1",
@@ -676,7 +656,12 @@ const updateHomeShowCaseLogoSettings = async (payload) => {
   if (!existing) {
     const result = await System.create({
       systemId: "system-1",
-      homeSettings: data,
+      homeSettings: {
+        showCaseLogo: {
+          title,
+          slideImages,
+        },
+      },
     });
 
     if (!result)
@@ -693,8 +678,8 @@ const updateHomeShowCaseLogoSettings = async (payload) => {
           homeSettings: {
             ...existing?.homeSettings,
             showCaseLogo: {
-              ...existing?.homeSettings?.showCaseLogo,
-              ...data,
+              title,
+              slideImages,
             },
           },
         },
@@ -705,28 +690,24 @@ const updateHomeShowCaseLogoSettings = async (payload) => {
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
+    const existingSlideImages =
+      existing.homeSettings.showCaseLogo.slideImages || [];
+
+    // Remove old images if the URL has changed
+    for (const existingSlideImage of existingSlideImages) {
+      const shouldRemoved = slideImages.find(
+        (item) => item.url === existingSlideImage.url
+      );
+
+      if (!shouldRemoved) await removeImage(existingSlideImage.url);
+    }
+
     return result;
   }
 };
 
 const updateHomeZeroPlacePromotionalSettings = async (payload) => {
-  const { data, files } = payload;
-
-  if (files.length) {
-    for (const file of files) {
-      const result = await cloudinary.v2.uploader.upload(file.path, {
-        folder: "church-logo/home/zero-place-promotional",
-        use_filename: true,
-      });
-
-      for (const [key, value] of Object.entries(data)) {
-        if (value === file.uid) {
-          data[key] = [{ url: result.secure_url }];
-          break;
-        }
-      }
-    }
-  }
+  const { title, description, thumbnail, background } = payload;
 
   const existing = await System.findOne({
     systemId: "system-1",
@@ -735,7 +716,14 @@ const updateHomeZeroPlacePromotionalSettings = async (payload) => {
   if (!existing) {
     const result = await System.create({
       systemId: "system-1",
-      homeSettings: data,
+      homeSettings: {
+        zeroPlacePromotional: {
+          title,
+          description,
+          thumbnail,
+          background,
+        },
+      },
     });
 
     if (!result)
@@ -750,10 +738,12 @@ const updateHomeZeroPlacePromotionalSettings = async (payload) => {
       {
         $set: {
           homeSettings: {
-            ...existing?.homeSettings,
+            ...existing.homeSettings,
             zeroPlacePromotional: {
-              ...existing?.homeSettings?.zeroPlacePromotional,
-              ...data,
+              title,
+              description,
+              thumbnail,
+              background,
             },
           },
         },
@@ -763,6 +753,15 @@ const updateHomeZeroPlacePromotionalSettings = async (payload) => {
 
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+
+    const existingZeroPlacePromotional =
+      existing.homeSettings.zeroPlacePromotional || {};
+
+    if (existingZeroPlacePromotional.thumbnail[0].url !== thumbnail[0].url)
+      await removeImage(existingZeroPlacePromotional.thumbnail[0].url);
+
+    if (existingZeroPlacePromotional.background[0].url !== background[0].url)
+      await removeImage(existingZeroPlacePromotional.background[0].url);
 
     return result;
   }
