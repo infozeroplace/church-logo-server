@@ -267,14 +267,7 @@ const updateHomeZeroPlacePromotionalSettings = catchAsync(async (req, res) => {
 });
 
 const updateHomePortfolioSettings = catchAsync(async (req, res) => {
-  const { ...data } = req.body;
-
-  const payload = {
-    data: data,
-    files: req.files,
-  };
-
-  const result = await SystemService.updateHomePortfolioSettings(payload);
+  const result = await SystemService.updateHomePortfolioSettings(req.body);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,

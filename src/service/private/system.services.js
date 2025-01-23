@@ -769,48 +769,7 @@ const updateHomeZeroPlacePromotionalSettings = async (payload) => {
 };
 
 const updateHomePortfolioSettings = async (payload) => {
-  const { data, files } = payload;
-
-  if (!files.length) {
-    data.portfolios = data.portfolios.map((portfolio) => {
-      let parsedThumbnail = portfolio.thumbnail;
-      if (typeof portfolio.thumbnail === "string") {
-        parsedThumbnail = JSON.parse(portfolio.thumbnail);
-      }
-      return {
-        ...portfolio,
-        thumbnail: parsedThumbnail,
-      };
-    });
-  } else {
-    const portfolios = [];
-    for (const portfolio of data.portfolios) {
-      if (portfolio.uid) {
-        const file = files.find((item) => item.originalname === portfolio.uid);
-        if (file) {
-          const result = await cloudinary.v2.uploader.upload(file.path, {
-            folder: "church-logo/home/portfolio",
-            use_filename: true,
-          });
-          portfolios.push({
-            ...portfolio,
-            thumbnail: [{ url: result.secure_url }],
-          });
-        }
-      } else {
-        let parsedThumbnail = portfolio.thumbnail;
-        if (typeof portfolio.thumbnail === "string") {
-          parsedThumbnail = JSON.parse(portfolio.thumbnail);
-        }
-        portfolios.push({
-          ...portfolio,
-          thumbnail: parsedThumbnail,
-        });
-      }
-    }
-
-    data.portfolios = portfolios;
-  }
+  const { portfolios } = payload;
 
   const existing = await System.findOne({
     systemId: "system-1",
@@ -819,7 +778,9 @@ const updateHomePortfolioSettings = async (payload) => {
   if (!existing) {
     const result = await System.create({
       systemId: "system-1",
-      homeSettings: data.portfolios,
+      homeSettings: {
+        portfolios,
+      },
     });
 
     if (!result)
@@ -835,7 +796,7 @@ const updateHomePortfolioSettings = async (payload) => {
         $set: {
           homeSettings: {
             ...existing?.homeSettings,
-            portfolios: data.portfolios,
+            portfolios,
           },
         },
       },
@@ -844,6 +805,23 @@ const updateHomePortfolioSettings = async (payload) => {
 
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+
+    const existingPortfolios = existing.homeSettings.portfolios || [];
+
+    // Remove old images if the URL has changed
+    for (const portfolio of portfolios) {
+      const existingPortfolio = existingPortfolios.find(
+        (s) => s.uid === portfolio.uid
+      );
+
+      if (
+        existingPortfolio &&
+        existingPortfolio.url &&
+        existingPortfolio.url !== portfolio.url
+      ) {
+        await removeImage(existingPortfolio.url);
+      }
+    }
 
     return result;
   }
@@ -863,10 +841,7 @@ const updateHomeServiceSettings = async (payload) => {
       homeSettings: {
         service: {
           serviceTitle,
-          services: services.map(({ title, description, uid, url }) => ({
-            ...item,
-            url: item.url,
-          })),
+          services,
         },
       },
     });
