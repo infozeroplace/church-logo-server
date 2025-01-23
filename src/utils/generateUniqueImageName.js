@@ -8,7 +8,7 @@ import crypto from "crypto";
 
 const generateUniqueImageName = (originalName) => {
   // Extract the name and extension from the original file name
-  const name = originalName.split(".")[0];
+  const name = originalName.split(".")[0].toLowerCase();
 
   // Get the current timestamp
   const timestamp = Date.now();

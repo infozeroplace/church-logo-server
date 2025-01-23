@@ -288,12 +288,7 @@ const updateHomePortfolioSettings = catchAsync(async (req, res) => {
 const updateHomeServiceSettings = catchAsync(async (req, res) => {
   const { ...data } = req.body;
 
-  const payload = {
-    data: data,
-    files: req.files,
-  };
-
-  const result = await SystemService.updateHomeServiceSettings(payload);
+  const result = await SystemService.updateHomeServiceSettings(data);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,

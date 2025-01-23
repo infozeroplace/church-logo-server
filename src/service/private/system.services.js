@@ -118,8 +118,6 @@ const updateLogo = async (payload) => {
 
     return result;
   } else {
-    await removeImage(existing.logo);
-
     const result = await System.findOneAndUpdate(
       {
         systemId: "system-1",
@@ -132,6 +130,8 @@ const updateLogo = async (payload) => {
 
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+
+    await removeImage(existing.logo);
 
     return result;
   }
@@ -850,57 +850,25 @@ const updateHomePortfolioSettings = async (payload) => {
 };
 
 const updateHomeServiceSettings = async (payload) => {
-  const { data, files } = payload;
-
-  if (!files.length) {
-    data.services = data.services.map((service) => {
-      let parsedThumbnail = service.thumbnail;
-      if (typeof service.thumbnail === "string") {
-        parsedThumbnail = JSON.parse(service.thumbnail);
-      }
-      return {
-        ...service,
-        thumbnail: parsedThumbnail,
-      };
-    });
-  } else {
-    const services = [];
-    for (const service of data.services) {
-      if (service.uid) {
-        const file = files.find((item) => item.originalname === service.uid);
-        if (file) {
-          const result = await cloudinary.v2.uploader.upload(file.path, {
-            folder: "church-logo/home/service-icon",
-            use_filename: true,
-          });
-          services.push({
-            ...service,
-            thumbnail: [{ url: result.secure_url }],
-          });
-        }
-      } else {
-        let parsedThumbnail = service.thumbnail;
-        if (typeof service.thumbnail === "string") {
-          parsedThumbnail = JSON.parse(service.thumbnail);
-        }
-        services.push({
-          ...service,
-          thumbnail: parsedThumbnail,
-        });
-      }
-    }
-
-    data.services = services;
-  }
+  const { serviceTitle, services } = payload;
 
   const existing = await System.findOne({
     systemId: "system-1",
   });
 
   if (!existing) {
+    // Create a new document if it doesn't exist
     const result = await System.create({
       systemId: "system-1",
-      homeSettings: data,
+      homeSettings: {
+        service: {
+          serviceTitle,
+          services: services.map(({ title, description, uid, url }) => ({
+            ...item,
+            url: item.url,
+          })),
+        },
+      },
     });
 
     if (!result)
@@ -908,15 +876,20 @@ const updateHomeServiceSettings = async (payload) => {
 
     return result;
   } else {
+    // Update the document
     const result = await System.findOneAndUpdate(
-      {
-        systemId: "system-1",
-      },
+      { systemId: "system-1" },
       {
         $set: {
           homeSettings: {
-            ...existing?.homeSettings,
-            service: data,
+            ...existing.homeSettings,
+            service: {
+              serviceTitle,
+              services: services.map((item) => ({
+                ...item,
+                url: item.url,
+              })),
+            },
           },
         },
       },
@@ -925,6 +898,23 @@ const updateHomeServiceSettings = async (payload) => {
 
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+
+    const existingServices = existing.homeSettings.service.services || [];
+
+    // Remove old images if the URL has changed
+    for (const service of services) {
+      const existingService = existingServices.find(
+        (s) => s.uid === service.uid
+      );
+
+      if (
+        existingService &&
+        existingService.url &&
+        existingService.url !== service.url
+      ) {
+        await removeImage(existingService.url);
+      }
+    }
 
     return result;
   }

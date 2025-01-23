@@ -134,8 +134,8 @@ router.put(
 router.put(
   "/system/update-home-service-settings",
   auth(ENUM_USER_ROLE.SUPER_ADMIN),
-  multipleImageUploader,
-  validateRequest(SystemValidation.homeServiceSettingsZodSchema),
+  // multipleImageUploader,
+  // validateRequest(SystemValidation.homeServiceSettingsZodSchema),
   SystemController.updateHomeServiceSettings
 );
 
