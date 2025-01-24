@@ -15,7 +15,6 @@ router.put(
 router.post(
   "/gallery/insert-branding-photos",
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
-  handleHomeShowCaseLogoUploader,
   GalleryController.insertBrandingPhotos
 );
 
@@ -34,7 +33,6 @@ router.get(
 router.post(
   "/gallery/insert-photos",
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
-  handleHomeShowCaseLogoUploader,
   GalleryController.insertPhotos
 );
 

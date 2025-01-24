@@ -21,15 +21,7 @@ const updateGalleryBrandingImages = catchAsync(async (req, res) => {
 });
 
 const insertBrandingPhotos = catchAsync(async (req, res) => {
-  const { ...data } = req.body;
-  const files = req.files;
-
-  const payload = {
-    data,
-    files,
-  };
-
-  const result = await GalleryService.insertBrandingPhotos(payload);
+  const result = await GalleryService.insertBrandingPhotos(req.body);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -73,15 +65,7 @@ const getGalleryImages = catchAsync(async (req, res) => {
 });
 
 const insertPhotos = catchAsync(async (req, res) => {
-  const { ...data } = req.body;
-  const files = req.files;
-
-  const payload = {
-    data,
-    files,
-  };
-
-  const result = await GalleryService.insertPhotos(payload);
+  const result = await GalleryService.insertPhotos(req.body);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,

@@ -1,9 +1,8 @@
-// import httpStatus from "http-status";
-// import ApiError from "../../error/ApiError.js";
 import { gallerySearchableFields } from "../../constant/image.constant.js";
 import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import cloudinary from "../../middleware/cloudinary.js";
 import { Gallery } from "../../model/image.model.js";
+import { removeImage } from "../../utils/fileSystem.js";
 
 const updateGalleryBrandingImages = async (payload) => {
   const { category, images = [] } = payload;
@@ -21,6 +20,7 @@ const updateGalleryBrandingImages = async (payload) => {
     if (!isExists) {
       for (const item of element.urls) {
         await cloudinary.v2.uploader.destroy(item.uid);
+        await removeImage(item.url);
       }
       documentsToRemove.push(element._id);
     }
@@ -44,18 +44,12 @@ const updateGalleryBrandingImages = async (payload) => {
 };
 
 const insertBrandingPhotos = async (payload) => {
-  const { data, files } = payload;
-  const { category } = data;
+  const { category, images } = payload;
 
   const urls = [];
 
-  for (const element of files) {
-    const result = await cloudinary.v2.uploader.upload(element.path, {
-      folder: `church-logo/gallery/${category}`,
-      use_filename: true,
-    });
-
-    urls.push({ uid: result.public_id, url: result.secure_url });
+  for (const img of images) {
+    urls.push({ uid: img.uid, url: img.url });
   }
 
   const existingCount = await Gallery.countDocuments({ category });
@@ -78,7 +72,7 @@ const updateGalleryImages = async (payload) => {
   for (const element of existingImages) {
     const isExists = images.find((item) => item.uid === element.urls[0].uid);
     if (!isExists) {
-      await cloudinary.v2.uploader.destroy(element.urls[0].uid);
+      await removeImage(element.urls[0].url);
       documentsToRemove.push(element._id);
     }
   }
@@ -157,8 +151,7 @@ const getGalleryImages = async (filters, paginationOptions) => {
 };
 
 const insertPhotos = async (payload) => {
-  const { data, files } = payload;
-  const { category } = data;
+  const { category, images } = payload;
 
   const offset = 1000000; // Large offset to temporarily shift serialId
 
@@ -170,22 +163,18 @@ const insertPhotos = async (payload) => {
 
   // Step 2: Prepare new documents with serialId starting from 1 (after existing count)
   const existingCount = await Gallery.countDocuments({ category });
-  const documentsToInsert = await Promise.all(
-    files.map(async (img, index) => {
-      const result = await cloudinary.v2.uploader.upload(img.path, {
-        folder: `church-logo/gallery/${category}`,
-        use_filename: true,
-      });
 
+  const documentsToInsert = await Promise.all(
+    images.map(async (img, idx) => {
       return {
         urls: [
           {
-            uid: result.public_id,
-            url: result.secure_url,
+            uid: img.uid,
+            url: img.url,
           },
         ],
         category,
-        serialId: existingCount + index + 1, // New serialId continues after existing documents
+        serialId: existingCount + idx + 1, // New serialId continues after existing documents
       };
     })
   );
@@ -206,7 +195,7 @@ const insertPhotos = async (payload) => {
         { _id: doc._id },
         {
           $set: {
-            serialId: doc.serialId - offset + existingCount + files.length,
+            serialId: doc.serialId - offset + existingCount + images.length,
           },
         } // Reassign correct serialId
       )
