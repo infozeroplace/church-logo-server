@@ -275,6 +275,8 @@ const updateGeneralFaqThumbnail = async (payload) => {
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
+    await removeImage(existing.faqThumbnail);
+
     return result;
   }
 };

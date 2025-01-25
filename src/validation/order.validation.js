@@ -25,7 +25,7 @@ const submitCustomOffer = z.object({
     }),
     thumbnail: z.string({
       required_error: "Thumbnail is required",
-    }).url(),
+    }),
     features: z.array(z.string()).optional(),
   }),
 });

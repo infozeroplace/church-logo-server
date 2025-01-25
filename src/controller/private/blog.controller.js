@@ -21,7 +21,7 @@ const uploadBlogImage = catchAsync(async (req, res) => {
 });
 
 const editBlog = catchAsync(async (req, res) => {
-  const result = await BlogService.editBlog(req.body, req.file);
+  const result = await BlogService.editBlog(req.body);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -86,15 +86,7 @@ const blogList = catchAsync(async (req, res) => {
 });
 
 const addBlog = catchAsync(async (req, res) => {
-  const { ...data } = req.body;
-  const { ...file } = req.file;
-
-  const payload = {
-    ...data,
-    thumbnail: file,
-  };
-
-  const result = await BlogService.addBlog(payload);
+  const result = await BlogService.addBlog(req.body);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,

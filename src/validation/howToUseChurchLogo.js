@@ -16,8 +16,7 @@ const howToUseChurchLogoBody = z.object({
   thumbnail: z
     .string({
       required_error: "Thumbnail is required",
-    })
-    .url(),
+    }),
 });
 
 const addHowToUseChurchLogoZodSchema = z.object({
@@ -43,8 +42,7 @@ const editHowToUseChurchLogoBody = z.object({
   thumbnail: z
     .string({
       required_error: "Thumbnail is required",
-    })
-    .url(),
+    }),
 });
 
 const editHowToUseChurchLogoZodSchema = z.object({

@@ -4,6 +4,7 @@ import ApiError from "../../error/ApiError.js";
 import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import cloudinary from "../../middleware/cloudinary.js";
 import { Blog } from "../../model/blog.model.js";
+import { removeImage } from "../../utils/fileSystem.js";
 
 const uploadBlogImage = async (payload) => {
   if (!payload.path) {
@@ -19,23 +20,20 @@ const uploadBlogImage = async (payload) => {
   return result;
 };
 
-const editBlog = async (payload, file) => {
+const editBlog = async (payload) => {
   const { id, ...data } = payload;
 
-  if (file && file.path) {
-    const result = await cloudinary.v2.uploader.upload(thumbnail.path, {
-      folder: "church-logo/blog-images",
-      use_filename: true,
-    });
+  const exist = await Blog.findById(id);
 
-    payload.thumbnail = result.secure_url;
-  }
+  if (!exist) throw new ApiError(httpStatus.BAD_REQUEST, "Not found!");
 
   const result = await Blog.findOneAndUpdate(
     { _id: id },
     { $set: { ...data } },
     { new: true, upsert: true }
   );
+
+  if (data.thumbnail !== exist.thumbnail) await removeImage(exist.thumbnail);
 
   return result;
 };
@@ -49,18 +47,9 @@ const blog = async (id) => {
 };
 
 const deleteBlogs = async (ids) => {
-  for (const id of ids) {
-    const existingBlog = await Blog.findOne({ _id: id });
-    if (existingBlog?.thumbnail?.publicId) {
-      await cloudinary.v2.uploader.destroy(existingBlog?.thumbnail?.publicId);
-    }
+  const exists = await Blog.find({ _id: { $in: ids } });
 
-    if (existingBlog?.images?.length > 0) {
-      for (const item of existingBlog?.images) {
-        await cloudinary.v2.uploader.destroy(item?.publicId);
-      }
-    }
-  }
+  if (!exists.length) throw new ApiError(httpStatus.BAD_REQUEST, "Not found!");
 
   const result = await Blog.deleteMany({
     _id: { $in: ids },
@@ -69,26 +58,24 @@ const deleteBlogs = async (ids) => {
   if (!result)
     throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
+  for (const elem of exists) {
+    await removeImage(elem.thumbnail);
+  }
+
   return result;
 };
 
 const deleteBlog = async (id) => {
-  const existingBlog = await Blog.findOne({ _id: id });
+  const exist = await Blog.findById(id);
 
-  if (existingBlog?.thumbnail?.publicId) {
-    await cloudinary.v2.uploader.destroy(existingBlog?.thumbnail?.publicId);
-  }
-
-  if (existingBlog?.images?.length > 0) {
-    for (const item of existingBlog?.images) {
-      await cloudinary.v2.uploader.destroy(item?.publicId);
-    }
-  }
+  if (!exist) throw new ApiError(httpStatus.BAD_REQUEST, "Not found!");
 
   const result = await Blog.deleteOne({ _id: id });
 
   if (!result)
     throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+
+  await removeImage(exist.thumbnail);
 
   return result;
 };
@@ -153,16 +140,7 @@ const blogList = async (filters, paginationOptions) => {
 };
 
 const addBlog = async (payload) => {
-  const { thumbnail, ...data } = payload;
-
-  if (thumbnail && thumbnail.path) {
-    const result = await cloudinary.v2.uploader.upload(thumbnail.path, {
-      folder: "church-logo/blog-images",
-      use_filename: true,
-    });
-
-    data.thumbnail = result.secure_url;
-  }
+  const { ...data } = payload;
 
   const result = await Blog.create(data);
 

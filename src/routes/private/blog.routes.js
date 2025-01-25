@@ -3,8 +3,6 @@ import { BlogController } from "../../controller/private/blog.controller.js";
 import { ENUM_USER_ROLE } from "../../enum/user.js";
 import auth from "../../middleware/auth.js";
 import { singleImageUploader } from "../../middleware/multer.js";
-import validateRequest from "../../middleware/validateRequest.js";
-import { BlogValidation } from "../../validation/blog.validation.js";
 
 const router = express.Router();
 
@@ -19,8 +17,6 @@ router.post(
 router.put(
   "/blog/edit",
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
-  singleImageUploader,
-  validateRequest(BlogValidation.editBlogZodSchema),
   BlogController.editBlog
 );
 
@@ -39,8 +35,6 @@ router.get(
 router.post(
   "/blog/add",
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
-  singleImageUploader,
-  validateRequest(BlogValidation.addBlogZodSchema),
   BlogController.addBlog
 );
 

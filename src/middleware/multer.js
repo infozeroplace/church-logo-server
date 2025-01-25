@@ -10,7 +10,7 @@ const handleHomeShowCaseLogoUploader = multer({
     },
   }),
   fileFilter: (req, file, cb) => {
-    const supportedImage = /png|jpg|jpeg/;
+    const supportedImage = /png|jpg|jpeg|svg|avif|webp/;
     const extension = path.extname(file.originalname);
     if (supportedImage.test(extension)) {
       cb(null, true);
@@ -29,7 +29,7 @@ const handleZeroPlaceImageUploader = multer({
   }),
   fileFilter: (req, file, cb) => {
     file.uid = req.body[file.fieldname];
-    const supportedImage = /png|jpg|jpeg/;
+    const supportedImage = /png|jpg|jpeg|svg|avif|webp/;
     const extension = path.extname(file.originalname);
     if (supportedImage.test(extension)) {
       cb(null, true);
@@ -49,7 +49,7 @@ const storage = multer.diskStorage({
 const singleImageUploader = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
-    const supportedImage = /png|jpg|jpeg/;
+    const supportedImage = /png|jpg|jpeg|svg|avif|webp/;
     const extension = path.extname(file.originalname);
     if (supportedImage.test(extension)) {
       cb(null, true);
@@ -62,7 +62,7 @@ const singleImageUploader = multer({
 const multipleImageUploader = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
-    const supportedImage = /png|jpg|jpeg/;
+    const supportedImage = /png|jpg|jpeg|svg|avif|webp/;
     const extension = path.extname(file.originalname);
     if (supportedImage.test(extension)) {
       cb(null, true);
@@ -83,7 +83,7 @@ const singleImageUploaderStorage = multer.diskStorage({
 const singlePhotoUploader = multer({
   storage: singleImageUploaderStorage,
   fileFilter: (req, file, cb) => {
-    const supportedImage = /png|jpg|jpeg/;
+    const supportedImage = /png|jpg|jpeg|svg|avif|webp/;
 
     const extension = path.extname(file.originalname);
 

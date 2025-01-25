@@ -1,5 +1,7 @@
+import fs from "fs";
 import httpStatus from "http-status";
-import { stripe } from "../app.js";
+import path from "path";
+import { __dirname, stripe } from "../app.js";
 import config from "../config/index.js";
 import ApiError from "../error/ApiError.js";
 import { dateFormatter } from "../helper/dateFormatter.js";
@@ -20,6 +22,46 @@ import calculateRevisionCount from "../utils/calculateRevisionCount.js";
 import generateInvoiceId from "../utils/generateInvoiceId.js";
 import generateOrderId from "../utils/generateOrderId.js";
 import packagePriceConversion from "../utils/packagePriceConversion.js";
+
+/**
+ * Save a base64 image to the server
+ * @param {string} base64Image - The base64 encoded image
+ * @param {string} folderPath - The directory to save the image
+ * @returns {string} - The file path of the saved image
+ */
+const saveBase64Image = async (base64Image, folderPath) => {
+  try {
+    // Ensure the folder exists
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, { recursive: true });
+    }
+
+    // Extract the file extension and base64 data
+    const matches = base64Image.match(
+      /^data:image\/(png|jpg|jpeg|svg|avif|webp);base64,(.+)$/
+    );
+    if (!matches) {
+      throw new Error("Invalid base64 image format");
+    }
+
+    const extension = matches[1];
+    const base64Data = matches[2];
+
+    // Generate a unique file name
+    const uniqueName = `${Date.now()}-${Math.round(
+      Math.random() * 1e9
+    )}.${extension}`;
+    const filePath = path.join(folderPath, uniqueName);
+
+    // Write the image to the file system
+    fs.writeFileSync(filePath, base64Data, { encoding: "base64" });
+
+    return uniqueName;
+  } catch (error) {
+    console.error("Error saving base64 image:", error.message);
+    throw error;
+  }
+};
 
 export const addExtraFeatures = async (payload) => {
   const { paymentIntentId, orderId, extraFeatures } = payload;
@@ -63,7 +105,10 @@ export const addExtraFeatures = async (payload) => {
 
   const result = await Order.findByIdAndUpdate(orderId, {
     $set: {
-      additionalFeature: [...parsedExtraFeatures, ...existingOrder.additionalFeature],
+      additionalFeature: [
+        ...parsedExtraFeatures,
+        ...existingOrder.additionalFeature,
+      ],
       totalPrice: totalPrice,
     },
     $push: {
@@ -401,6 +446,18 @@ export const createOrder = async (payload) => {
   const orderId = await generateOrderId();
   const invoiceId = await generateInvoiceId();
 
+  const folderPath = path.join(__dirname, "public", "image/upload");
+
+  const processedImages = await Promise.all(
+    referredImages.map(async (image) => {
+      if (image.url.startsWith("data:image/")) {
+        const filename = await saveBase64Image(image.url, folderPath);
+        return filename;
+      }
+      return image;
+    })
+  );
+
   const newOrder = {
     user: existingUser._id,
     package: existingPackage._id,
@@ -416,7 +473,7 @@ export const createOrder = async (payload) => {
     orderStatus: "in progress",
     additionalEmail: additionalEmail,
     transactionId: [paymentIntentId],
-    referredImages: referredImages,
+    referredImages: processedImages,
     requirements: requirements,
     preferredDesigns: preferredDesigns,
     preferredColors: preferredColors,

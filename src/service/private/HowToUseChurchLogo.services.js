@@ -4,6 +4,7 @@ import ApiError from "../../error/ApiError.js";
 import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import cloudinary from "../../middleware/cloudinary.js";
 import { HowToUseChurchLogo } from "../../model/howToUseChurchLogo.js";
+import { removeImage } from "../../utils/fileSystem.js";
 
 const addHowToUseChurchLogo = async (payload) => {
   const result = await HowToUseChurchLogo.create(payload);
@@ -93,7 +94,7 @@ const list = async (filters, paginationOptions) => {
 const getOne = async (id) => {
   const result = await HowToUseChurchLogo.findOne({ _id: id });
 
-  if (!result) throw new ApiError(httpStatus.BAD_REQUEST, "Blog not found!");
+  if (!result) throw new ApiError(httpStatus.BAD_REQUEST, "Not found!");
 
   return result;
 };
@@ -101,31 +102,51 @@ const getOne = async (id) => {
 const editOne = async (payload, file) => {
   const { id, ...data } = payload;
 
+  const exist = await HowToUseChurchLogo.findById(id);
+
+  if (!exist) throw new ApiError(httpStatus.BAD_REQUEST, "Not found!");
+
   const result = await HowToUseChurchLogo.findOneAndUpdate(
     { _id: id },
     { $set: { ...data } },
     { new: true, upsert: true }
   );
 
+  if (data.thumbnail !== exist.thumbnail) await removeImage(exist.thumbnail);
+
   return result;
 };
 
 const deleteOne = async (id) => {
+  const exist = await HowToUseChurchLogo.findById(id);
+
+  if (!exist) throw new ApiError(httpStatus.BAD_REQUEST, "Not found!");
+
   const result = await HowToUseChurchLogo.deleteOne({ _id: id });
 
   if (!result)
     throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
+  await removeImage(exist.thumbnail);
+
   return result;
 };
 
 const deleteMany = async (ids) => {
+  const exists = await HowToUseChurchLogo.find({ _id: { $in: ids } });
+
+  if (!exists.length) throw new ApiError(httpStatus.BAD_REQUEST, "Not found!");
+
   const result = await HowToUseChurchLogo.deleteMany({
     _id: { $in: ids },
   });
 
   if (!result)
     throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+
+  for (const elem of exists) {
+    await removeImage(elem.thumbnail);
+  }
 
   return result;
 };

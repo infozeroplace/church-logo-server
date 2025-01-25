@@ -31,7 +31,7 @@ const createCustomOfferPaymentIntentZod = z.object({
     }),
     thumbnail: z.string({
       required_error: "Thumbnail is required",
-    }).url(),
+    }),
     delivery: z.number({
       required_error: "Deliver day is required",
     }),
