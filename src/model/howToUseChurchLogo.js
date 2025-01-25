@@ -25,7 +25,7 @@ const howToUseChurchLogoSchema = Schema(
     },
     thumbnail: {
       type: String,
-      match: [/(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/, "Invalid URL format"],
+      trim: true,
       required: [true, "URL is required"],
     },
   },

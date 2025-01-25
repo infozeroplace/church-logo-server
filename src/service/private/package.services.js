@@ -3,9 +3,14 @@ import { packageSearchableFields } from "../../constant/package.constant.js";
 import ApiError from "../../error/ApiError.js";
 import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import { Package } from "../../model/package.model.js";
+import { removeImage } from "../../utils/fileSystem.js";
 import generatePackageId from "../../utils/generatePackageId.js";
 
 const deletePackages = async (ids) => {
+  const exists = await Package.find({ _id: { $in: ids } });
+
+  if (!exists.length) throw new ApiError(httpStatus.BAD_REQUEST, "Not found!");
+
   const result = await Package.deleteMany({
     _id: { $in: ids },
   });
@@ -13,14 +18,26 @@ const deletePackages = async (ids) => {
   if (!result)
     throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
+  for (const elem of exists) {
+    if (elem.thumbnail1) await removeImage(elem.thumbnail1);
+    if (elem.thumbnail2) await removeImage(elem.thumbnail2);
+  }
+
   return result;
 };
 
 const deletePackage = async (id) => {
+  const exist = await Package.findById(id);
+
+  if (!exist) throw new ApiError(httpStatus.BAD_REQUEST, "Not found!");
+
   const result = await Package.deleteOne({ _id: id });
 
   if (!result)
     throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
+
+  if (exist.thumbnail1) await removeImage(exist.thumbnail1);
+  if (exist.thumbnail2) await removeImage(exist.thumbnail2);
 
   return result;
 };
@@ -125,11 +142,18 @@ const getPackageList = async (filters, paginationOptions) => {
 const editPackage = async (payload) => {
   const { packageId, ...data } = payload;
 
+  const exist = await Package.findOne({ packageId });
+
+  if (!exist) throw new ApiError(httpStatus.BAD_REQUEST, "Not found!");
+
   const result = await Package.findOneAndUpdate(
     { packageId },
     { $set: { ...data } },
     { new: true, upsert: true }
   );
+
+  if (data.thumbnail1 !== exist.thumbnail1) await removeImage(exist.thumbnail1);
+  if (data.thumbnail2 !== exist.thumbnail2) await removeImage(exist.thumbnail2);
 
   return result;
 };
