@@ -15,7 +15,7 @@ const postComment = z.object({
     user: z.string({
       required_error: "User Id is required",
     }),
-    attachments: z.array(attachment).optional(),
+    attachments: z.array(z.string()).optional(),
     text: z.string({
       required_error: "Text is required",
     }),
@@ -46,7 +46,7 @@ const createTask = z.object({
       required_error: "Category is required",
     }),
     assignedTo: z.array(z.string()).optional(),
-    attachments: z.array(attachment).optional(),
+    attachments: z.array(z.string()).optional(),
   }),
 });
 

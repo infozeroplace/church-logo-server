@@ -67,7 +67,12 @@ const getReviewList = async (filters, paginationOptions) => {
         as: "package",
       },
     },
-    { $unwind: "$package" },
+    {
+      $unwind: {
+        path: "$package",
+        preserveNullAndEmptyArrays: true, // Preserve documents with null or missing package
+      },
+    },
     {
       $unset: [
         "user.password",
