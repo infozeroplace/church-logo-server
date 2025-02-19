@@ -130,6 +130,11 @@ const getList = async (filters, paginationOptions) => {
         localField: "user",
         foreignField: "_id",
         as: "user",
+        pipeline: [
+          {
+            $unset: "password", // ✅ Remove password from userId
+          },
+        ],
       },
     },
     { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
