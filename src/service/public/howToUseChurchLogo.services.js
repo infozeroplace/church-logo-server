@@ -5,7 +5,7 @@ import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import { HowToUseChurchLogo } from "../../model/howToUseChurchLogo.js";
 
 const getOne = async (id) => {
-  const result = await HowToUseChurchLogo.findOne({ _id: id });
+  const result = await HowToUseChurchLogo.findOne({ hId: id });
 
   if (!result) throw new ApiError(httpStatus.BAD_REQUEST, "Not found!");
 

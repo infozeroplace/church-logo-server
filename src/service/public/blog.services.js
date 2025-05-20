@@ -5,7 +5,7 @@ import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import { Blog } from "../../model/blog.model.js";
 
 const blog = async (id) => {
-  const result = await Blog.findOne({ _id: id });
+  const result = await Blog.findOne({ bId: id });
 
   if (!result) throw new ApiError(httpStatus.BAD_REQUEST, "Blog not found!");
 

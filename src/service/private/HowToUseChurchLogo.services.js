@@ -5,9 +5,16 @@ import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import cloudinary from "../../middleware/cloudinary.js";
 import { HowToUseChurchLogo } from "../../model/howToUseChurchLogo.js";
 import { removeImage } from "../../utils/fileSystem.js";
+import generateHowToUseChurchLogoId from "../../utils/generateHowToUseChurchLogoId.js";
 
 const addHowToUseChurchLogo = async (payload) => {
-  const result = await HowToUseChurchLogo.create(payload);
+  const hId = await generateHowToUseChurchLogoId(payload);
+
+  if (!hId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "H Id exists");
+  }
+
+  const result = await HowToUseChurchLogo.create({ hId, ...payload });
 
   if (!result)
     throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");

@@ -3,6 +3,11 @@ import mongoosePlugin from "mongoose-aggregate-paginate-v2";
 
 const blogSchema = Schema(
   {
+    bId: {
+      type: String,
+      trim: true,
+      required: [true, "bId is required!"],
+    },
     title: {
       type: String,
       trim: true,

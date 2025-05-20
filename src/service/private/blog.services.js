@@ -5,6 +5,7 @@ import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import cloudinary from "../../middleware/cloudinary.js";
 import { Blog } from "../../model/blog.model.js";
 import { removeImage } from "../../utils/fileSystem.js";
+import generateBlogId from "../../utils/generateBlogId.js";
 
 const uploadBlogImage = async (payload) => {
   if (!payload.path) {
@@ -142,7 +143,13 @@ const blogList = async (filters, paginationOptions) => {
 const addBlog = async (payload) => {
   const { ...data } = payload;
 
-  const result = await Blog.create(data);
+  const bId = await generateBlogId(payload);
+
+  if (!bId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Blog Id exists");
+  }
+
+  const result = await Blog.create({ bId, ...data });
 
   if (!result)
     throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");

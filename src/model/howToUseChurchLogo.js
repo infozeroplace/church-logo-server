@@ -3,6 +3,11 @@ import mongoosePlugin from "mongoose-aggregate-paginate-v2";
 
 const howToUseChurchLogoSchema = Schema(
   {
+    hId: {
+      type: String,
+      trim: true,
+      required: [true, "hId is required!"],
+    },
     headTitle: {
       type: String,
       trim: true,
