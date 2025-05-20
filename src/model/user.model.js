@@ -20,6 +20,7 @@ const UserSchema = Schema(
         "Invalid URL format",
       ],
       required: [true, "Email address is required"],
+      set: val => val.toLowerCase(),
     },
     firstName: {
       type: String,
