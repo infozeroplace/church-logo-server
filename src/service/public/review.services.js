@@ -70,7 +70,7 @@ const getReviewList = async (filters, paginationOptions) => {
     {
       $unwind: {
         path: "$package",
-        preserveNullAndEmptyArrays: true, // Preserve documents with null or missing package
+        preserveNullAndEmptyArrays: true,
       },
     },
     {
