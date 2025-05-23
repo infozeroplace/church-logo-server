@@ -32,6 +32,8 @@ const config = {
           process.env.PRODUCTION_ADMIN_FRONTEND_BASE_URL,
           process.env.PRODUCTION_FRONTEND_BASE_URL_WWW,
           process.env.PRODUCTION_ADMIN_FRONTEND_BASE_URL_WWW,
+          process.env.DEVELOPMENT_FRONTEND_BASE_URL_DEV,
+          process.env.DEVELOPMENT_ADMIN_FRONTEND_BASE_URL_DEV,
         ]
       : [
           process.env.DEVELOPMENT_FRONTEND_BASE_URL_DEV,
