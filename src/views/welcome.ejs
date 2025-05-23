@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        line-height: 0;
+      }
+      div {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 95vh;
+        color: #2c3e50;
+      }
+      h1 {
+        color: #13a800;
+      }
+      p {
+        font-size: 1.2em;
+      }
+      p > a {
+        color: #6d46fe;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      p > a:hover {
+        text-decoration: underline;
+      }
+      p > span {
+        color: #13a800;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1><%= title %></h1>
+      <p>
+        © <%= currentYear %> <span><%= title %></span> | All rights reserved.
+        Developed by
+        <a href="https://zeroplace.co" target="_blank" rel="noreferrer">
+          ZeroPlace
+        </a>
+      </p>
+    </div>
+  </body>
+</html>

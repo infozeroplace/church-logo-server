@@ -42,14 +42,22 @@ clearTemporaryOrdersCron();
 app.use("/api/v1", routes);
 
 app.get("/", async (req, res) => {
-  // res.send("WELCOME TO CHURCHLOGO PRODUCTION!!");
-  return sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "WELCOME TO CHURCHLOGO PRODUCTION!!",
-    meta: null,
-    data: null,
-  });
+  if (req.accepts("html")) {
+    // Render view for browser requests
+    return res.render("welcome", {
+      title: "CHURCH LOGO",
+      currentYear: new Date().getFullYear(),
+    });
+  } else {
+    // Return JSON for API requests
+    return sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "WELCOME TO CHURCH LOGO PRODUCTION!!",
+      meta: null,
+      data: null,
+    });
+  }
 });
 
 app.use((req, res) => {
