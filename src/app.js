@@ -14,9 +14,8 @@ import sendResponse from "./shared/sendResponse.js";
 
 const app = express();
 
-export const __filename = fileURLToPath(import.meta.url);
-export const __dirname = path.dirname(__filename);
 export const stripe = new Stripe(config.stripe_secret_key);
+export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(cors(corsOptions));
 app.use(cookieParser());
@@ -34,6 +33,8 @@ app.use(
   })
 );
 
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use("/public", express.static(path.join(__dirname, "public")));
 
