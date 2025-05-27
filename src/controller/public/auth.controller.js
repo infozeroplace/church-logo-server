@@ -4,6 +4,68 @@ import { AuthService } from "../../service/public/auth.services.js";
 import catchAsync from "../../shared/catchAsync.js";
 import sendResponse from "../../shared/sendResponse.js";
 
+const adminLogout = catchAsync(async (req, res) => {
+  const { token } = req.body;
+  const { auth } = req.cookies;
+
+  if (!auth) {
+    return sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "No session found, but logged out successfully!",
+      meta: null,
+      data: null,
+    });
+  }
+
+  res.clearCookie("auth", {
+    domain: config.cookie_domain,
+    path: "/",
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
+
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Logged out successfully!",
+    meta: null,
+    data: null,
+  });
+});
+
+const logout = catchAsync(async (req, res) => {
+  const { token } = req.body;
+  const { auth_refresh } = req.cookies;
+
+  if (!auth_refresh) {
+    return sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "No session found, but logged out successfully!",
+      meta: null,
+      data: null,
+    });
+  }
+
+  res.clearCookie("auth_refresh", {
+    domain: config.cookie_domain,
+    path: "/",
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
+
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Logged out successfully!",
+    meta: null,
+    data: null,
+  });
+});
+
 const resetPassword = catchAsync(async (req, res) => {
   const { ...resetPasswordData } = req.body;
 
@@ -115,6 +177,20 @@ const googleLogin = catchAsync(async (req, res) => {
   });
 });
 
+const adminRefreshToken = catchAsync(async (req, res) => {
+  const { auth } = req.cookies;
+
+  const result = await AuthService.adminRefreshToken(auth, res);
+
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Refresh token successfully!",
+    meta: null,
+    data: result,
+  });
+});
+
 const refreshToken = catchAsync(async (req, res) => {
   const { auth_refresh } = req.cookies;
 
@@ -130,11 +206,14 @@ const refreshToken = catchAsync(async (req, res) => {
 });
 
 export const AuthController = {
+  adminLogout,
+  logout,
   resetPassword,
   forgotPassword,
   register,
   login,
   adminLogin,
   googleLogin,
+  adminRefreshToken,
   refreshToken,
 };

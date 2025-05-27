@@ -150,6 +150,10 @@ const register = async (payload) => {
     messageType: "client",
   });
 
+  if (createdConversation) {
+    createdUser.conversationId = createdConversation._id;
+  }
+
   const createdMessage = await Message.create({
     isRead: true,
     text: "No messages",
@@ -459,6 +463,10 @@ const googleLogin = async (code) => {
       messageType: "client",
     });
 
+    if (createdConversation) {
+      createdUser.conversationId = createdConversation._id;
+    }
+
     const createdMessage = await Message.create({
       isRead: true,
       text: "No messages",
@@ -512,6 +520,63 @@ const googleLogin = async (code) => {
       user: createdUser,
     };
   }
+};
+
+const adminRefreshToken = async (refreshToken, res) => {
+  let verifiedToken = null;
+
+  try {
+    verifiedToken = jwtHelpers.verifiedToken(
+      refreshToken,
+      config?.jwt?.refresh_secret
+    );
+  } catch (err) {
+    res.clearCookie("auth", {
+      domain: config.cookie_domain,
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
+
+    throw new ApiError(httpStatus.FORBIDDEN, "Invalid refresh token");
+  }
+
+  const { userId } = verifiedToken;
+  // If the user already deleted then delete the refresh token
+  const isUserExist = await User.findOne({ userId: userId }).lean();
+
+  if (!isUserExist) {
+    res.clearCookie("auth", {
+      domain: config.cookie_domain,
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
+
+    throw new ApiError(httpStatus.BAD_REQUEST, "User does not exist");
+  }
+
+  // generate new token
+  const newAccessToken = jwtHelpers.createToken(
+    {
+      role: isUserExist?.role,
+      userId: isUserExist?.userId,
+      email: isUserExist?.email,
+      blockStatus: isUserExist?.blockStatus,
+    },
+    config?.jwt?.secret,
+    config?.jwt?.expires_in
+  );
+
+  isUserExist.isPasswordHas = isUserExist.password ? true : false;
+
+  // Remove the password
+  isUserExist.password = undefined;
+
+  return {
+    accessToken: newAccessToken,
+    user: isUserExist,
+  };
 };
 
 const refreshToken = async (refreshToken, res) => {
@@ -585,5 +650,6 @@ export const AuthService = {
   login,
   adminLogin,
   googleLogin,
+  adminRefreshToken,
   refreshToken,
 };

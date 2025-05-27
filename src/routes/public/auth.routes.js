@@ -5,6 +5,10 @@ import validateRequest from "../../middleware/validateRequest.js";
 import { AuthValidation } from "../../validation/auth.validation.js";
 const router = express.Router();
 
+router.post('/auth/admin/logout', AuthController.adminLogout);
+
+router.post("/auth/logout", AuthController.logout);
+
 router.post(
   "/auth/reset-password",
   limiter(5, 10),
@@ -47,10 +51,8 @@ router.post(
   AuthController.googleLogin
 );
 
-router.post(
-  "/auth/refresh/token",
-  validateRequest(AuthValidation.refreshTokenZodSchema),
-  AuthController.refreshToken
-);
+router.get('/auth/refresh/admin/token', AuthController.adminRefreshToken);
+
+router.get("/auth/refresh/token", AuthController.refreshToken);
 
 export const AuthRoutes = router;
