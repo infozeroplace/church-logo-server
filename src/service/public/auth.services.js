@@ -131,10 +131,7 @@ const register = async (payload) => {
   const isEmailExist = await User.findOne({ email: payload.email });
 
   if (isEmailExist) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "User already exists with this email"
-    );
+    throw new ApiError(httpStatus.BAD_REQUEST, "Email already exists!");
   }
 
   const createdUser = await User.create({
@@ -517,14 +514,21 @@ const googleLogin = async (code) => {
   }
 };
 
-const refreshToken = async (token) => {
+const refreshToken = async (refreshToken, res) => {
   let verifiedToken = null;
   try {
     verifiedToken = jwtHelpers.verifiedToken(
-      token,
+      refreshToken,
       config?.jwt?.refresh_secret
     );
   } catch (err) {
+    res.clearCookie("auth_refresh", {
+      domain: config.cookie_domain,
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
+
     throw new ApiError(httpStatus.FORBIDDEN, "Invalid refresh token");
   }
 
@@ -533,6 +537,13 @@ const refreshToken = async (token) => {
   const isUserExist = await User.findOne({ userId: userId }).lean();
 
   if (!isUserExist) {
+    res.clearCookie("auth_refresh", {
+      domain: config.cookie_domain,
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
+
     throw new ApiError(httpStatus.BAD_REQUEST, "User does not exist");
   }
 

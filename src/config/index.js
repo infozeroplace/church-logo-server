@@ -25,6 +25,11 @@ const config = {
       ? process.env.PRODUCTION_ADMIN_FRONTEND_BASE_URL
       : process.env.DEVELOPMENT_ADMIN_FRONTEND_BASE_URL_DEV,
 
+  cookie_domain:
+    process.env.NODE_ENV === "production"
+      ? process.env.PRODUCTION_COOKIE_DOMAIN
+      : process.env.DEVELOPMENT_COOKIE_DOMAIN,
+
   origins:
     process.env.NODE_ENV === "production"
       ? [
