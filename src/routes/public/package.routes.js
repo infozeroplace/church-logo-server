@@ -2,6 +2,8 @@ import express from "express";
 import { PackageController } from "../../controller/public/package.controller.js";
 const router = express.Router();
 
+router.get("/package/entire-list", PackageController.getPackageEntireList);
+
 router.get("/package/list", PackageController.getPackageList);
 
 router.get("/package/:id", PackageController.getOnePackage);

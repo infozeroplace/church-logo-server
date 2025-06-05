@@ -4,6 +4,15 @@ import ApiError from "../../error/ApiError.js";
 import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import { Package } from "../../model/package.model.js";
 
+const getPackageEntireList = async () => {
+  const result = await Package.find({});
+
+  if (0 >= result.length)
+    throw new ApiError(httpStatus.BAD_REQUEST, "No package not found!");
+
+  return result;
+};
+
 const getOnePackage = async (id) => {
   const result = await Package.findOne({ packageId: id });
 
@@ -90,6 +99,7 @@ const getPackageList = async (filters, paginationOptions) => {
 };
 
 export const PackageService = {
+  getPackageEntireList,
   getOnePackage,
   getPackageList,
 };
