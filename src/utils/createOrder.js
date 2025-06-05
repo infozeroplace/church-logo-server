@@ -22,6 +22,7 @@ import calculateRevisionCount from "../utils/calculateRevisionCount.js";
 import generateInvoiceId from "../utils/generateInvoiceId.js";
 import generateOrderId from "../utils/generateOrderId.js";
 import packagePriceConversion from "../utils/packagePriceConversion.js";
+import { getUsersFromAdminsAndClientsOnlineList } from "./socket.js";
 
 /**
  * Save a base64 image to the server
@@ -191,12 +192,6 @@ export const createCustomOffer = async (payload) => {
 
   const { UTC, dateString } = dateFormatter.getDates();
 
-  await Message.findByIdAndUpdate(messageId, {
-    $set: {
-      action: "accepted",
-    },
-  });
-
   const orderId = await generateOrderId();
   const invoiceId = await generateInvoiceId();
 
@@ -279,6 +274,37 @@ export const createCustomOffer = async (payload) => {
       conversation: createdConversation._id,
     }
   );
+
+  const message = await Message.findByIdAndUpdate(
+    messageId,
+    {
+      $set: {
+        action: "accepted",
+      },
+    },
+    { new: true }
+  ).populate([
+    {
+      path: "conversationId",
+      select: ["_id", "creator", "participant", "lastUpdated"],
+    },
+    {
+      path: "sender",
+      select: ["firstName", "lastName", "role", "userId", "photo"],
+    },
+    {
+      path: "receiver",
+      select: ["firstName", "lastName", "role", "userId", "photo"],
+    },
+  ]);
+
+  const { filteredSocketIds } = getUsersFromAdminsAndClientsOnlineList(
+    message.receiver.userId
+  );
+
+  if (filteredSocketIds.length > 0) {
+    global.io.to(filteredSocketIds).emit("adminClientMsgTransfer", message);
+  }
 
   const systemData = await System.findOne({ systemId: "system-1" });
 

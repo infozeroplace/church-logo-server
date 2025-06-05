@@ -69,14 +69,23 @@ const logout = catchAsync(async (req, res) => {
 const resetPassword = catchAsync(async (req, res) => {
   const { ...resetPasswordData } = req.body;
 
-  const result = await AuthService.resetPassword(resetPasswordData);
+  const { refreshToken, ...data } = await AuthService.resetPassword(resetPasswordData);
+
+  res.cookie("auth_refresh", refreshToken, {
+    domain: config.cookie_domain,
+    path: "/",
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+    maxAge: 15 * 24 * 60 * 60 * 1000,
+  });
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Password reset successful!",
     meta: null,
-    data: result,
+    data,
   });
 });
 

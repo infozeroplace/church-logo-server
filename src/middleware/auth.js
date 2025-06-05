@@ -19,12 +19,26 @@ const auth =
       try {
         verifiedUser = jwtHelpers.verifiedToken(token, config?.jwt?.secret);
       } catch (error) {
+        res.clearCookie("auth_refresh", {
+          domain: config.cookie_domain,
+          httpOnly: true,
+          sameSite: "none",
+          secure: true,
+        });
+
         throw new ApiError(httpStatus.FORBIDDEN, "FORBIDDEN!");
       }
 
       const user = await User.findOne({ userId: verifiedUser.userId });
 
       if (user && user.role === "user" && user.blockStatus) {
+        res.clearCookie("auth_refresh", {
+          domain: config.cookie_domain,
+          httpOnly: true,
+          sameSite: "none",
+          secure: true,
+        });
+
         throw new ApiError(httpStatus.FORBIDDEN, "You've been blocked!");
       }
 
@@ -39,11 +53,25 @@ const auth =
 
       // guard of role
       if (requiredRoles.length && !requiredRoles.includes(user.role)) {
+        res.clearCookie("auth_refresh", {
+          domain: config.cookie_domain,
+          httpOnly: true,
+          sameSite: "none",
+          secure: true,
+        });
+
         throw new ApiError(httpStatus.UNAUTHORIZED, "UNAUTHORIZED ACCESS!");
       }
 
       next();
     } catch (error) {
+      res.clearCookie("auth_refresh", {
+        domain: config.cookie_domain,
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+      });
+
       next(error);
     }
   };

@@ -89,7 +89,7 @@ export const sendEmailVerificationLink = async (email, name, token) => {
     html: `<div style="width: 100%; padding: 20px; font-size: 16px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
   <h3>Dear, ${name}</h3>
   <p>
-    Thank you for joining Church Logo! To complete your registration and activate your account, 
+    Thank you for joining ChurchLogo! To complete your registration and activate your account, 
     please verify your email address by clicking the link below <strong style="font-weight: 700;">within 15 minutes</strong>:
   </p>
 
@@ -126,7 +126,7 @@ export const sendEmailVerificationLink = async (email, name, token) => {
 
   <p style="margin: 40px 0 0;">
     Warm regards, <br />
-    <strong>The Church Logo Support Team</strong>
+    <strong>The ChurchLogo Support Team</strong>
   </p>
 
   <footer style="margin-top: 40px; font-size: 14px; color: #777;">
@@ -156,13 +156,13 @@ export const sendForgotPasswordLink = async (email, name, token) => {
   const mailOptions = {
     from: `"ChurchLogo" <${config.support_mail_address}>`,
     to: email,
-    subject: "Reset Your Church Logo Password",
+    subject: "Reset Your ChurchLogo Password",
     html: `
       <div style="width: 100%; padding: 20px 10px; font-size: 18px; font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
         <h3>Hello, ${name}</h3>
 
         <p>
-          We received a request to reset your Church Logo account password. Please click the link below 
+          We received a request to reset your ChurchLogo account password. Please click the link below 
           <strong style="font-weight: 900;">within 15 minutes</strong> to reset your password:
         </p>
 
@@ -193,7 +193,7 @@ export const sendForgotPasswordLink = async (email, name, token) => {
 
         <p style="margin: 40px 0 0;">
           Best regards, <br />
-          <strong>The Church Logo Support Team</strong>
+          <strong>The ChurchLogo Support Team</strong>
         </p>
 
         <footer style="margin-top: 40px; font-size: 14px; color: #777;">

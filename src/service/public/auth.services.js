@@ -45,8 +45,16 @@ const resetPassword = async (payload) => {
       resetToken: "",
       password: await bcrypt.hash(password, Number(config.bcrypt_salt_rounds)),
     },
-    { new: true }
+    { new: true, lean: true }
   );
+
+  const existingConversation = await Conversation.findOne({
+    creator: updatedUser._id,
+  });
+
+  if (existingConversation) {
+    updatedUser.conversationId = existingConversation._id;
+  }
 
   // Create access token
   const accessToken = jwtHelpers.createToken(
