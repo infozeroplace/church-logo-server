@@ -6,6 +6,18 @@ import catchAsync from "../../shared/catchAsync.js";
 import pick from "../../shared/pick.js";
 import sendResponse from "../../shared/sendResponse.js";
 
+const getBlogEntireList = catchAsync(async (req, res) => {
+  const data = await BlogService.getBlogEntireList();
+
+  return sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Blogs retrieved successfully",
+    meta: null,
+    data,
+  });
+});
+
 const blog = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await BlogService.blog(id);
@@ -35,6 +47,7 @@ const blogList = catchAsync(async (req, res) => {
 });
 
 export const BlogController = {
+  getBlogEntireList,
   blog,
   blogList,
 };

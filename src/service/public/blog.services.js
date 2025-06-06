@@ -4,6 +4,15 @@ import ApiError from "../../error/ApiError.js";
 import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import { Blog } from "../../model/blog.model.js";
 
+const getBlogEntireList = async () => {
+  const result = await Blog.find({});
+
+  if (0 >= result.length)
+    throw new ApiError(httpStatus.BAD_REQUEST, "No blogs are found!");
+
+  return result;
+};
+
 const blog = async (id) => {
   const result = await Blog.findOne({ bId: id });
 
@@ -72,6 +81,7 @@ const blogList = async (filters, paginationOptions) => {
 };
 
 export const BlogService = {
+  getBlogEntireList,
   blog,
   blogList,
 };

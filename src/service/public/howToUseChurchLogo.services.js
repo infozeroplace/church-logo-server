@@ -4,6 +4,15 @@ import ApiError from "../../error/ApiError.js";
 import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import { HowToUseChurchLogo } from "../../model/howToUseChurchLogo.js";
 
+const getEntireList = async () => {
+  const result = await HowToUseChurchLogo.find({});
+
+  if (0 >= result.length)
+    throw new ApiError(httpStatus.BAD_REQUEST, "No data are found!");
+
+  return result;
+};
+
 const getOne = async (id) => {
   const result = await HowToUseChurchLogo.findOne({ hId: id });
 
@@ -74,7 +83,4 @@ const list = async (filters, paginationOptions) => {
   };
 };
 
-export const HowToUseChurchLogoService = {
-  getOne,
-  list,
-};
+export const HowToUseChurchLogoService = { getEntireList, getOne, list };

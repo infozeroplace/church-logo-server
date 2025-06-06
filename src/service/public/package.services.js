@@ -8,7 +8,7 @@ const getPackageEntireList = async () => {
   const result = await Package.find({});
 
   if (0 >= result.length)
-    throw new ApiError(httpStatus.BAD_REQUEST, "No package not found!");
+    throw new ApiError(httpStatus.BAD_REQUEST, "No packages are found!");
 
   return result;
 };

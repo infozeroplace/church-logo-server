@@ -3,6 +3,11 @@ import { HowToUseChurchLogoController } from "../../controller/public/howToUseCh
 
 const router = express.Router();
 
+router.get(
+  "/how-to-use-church-logo/entire-list",
+  HowToUseChurchLogoController.getEntireList
+);
+
 router.get("/how-to-use-church-logo/list", HowToUseChurchLogoController.list);
 
 router.get("/how-to-use-church-logo/:id", HowToUseChurchLogoController.getOne);
