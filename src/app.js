@@ -46,7 +46,7 @@ app.get("/", async (req, res) => {
   if (req.accepts("html")) {
     // Render view for browser requests
     return res.render("welcome", {
-      title: "CHURCH LOGO",
+      title: "WELCOME TO CHURCH LOGO",
       currentYear: new Date().getFullYear(),
     });
   } else {

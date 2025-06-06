@@ -3,6 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      href="https://churchlogo.co/favicon.ico"
+      type="image/x-icon"
+      sizes="16x16"
+    />
+    <meta
+      property="og:image"
+      content="https://churchlogo.co/static/churchlogo.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="627" />
+    <meta property="og:url" content="https://api.churchlogo.co" />
+    <meta property="og:type" content="website" />
+
     <title><%= title %></title>
     <style>
       body {
@@ -22,8 +37,10 @@
       }
       h1 {
         color: #13a800;
+        font-size: 1.8em;
       }
       p {
+        word-wrap: break-word !important;
         font-size: 1.2em;
       }
       p > a {
@@ -44,7 +61,7 @@
     <div>
       <h1><%= title %></h1>
       <p>
-        © <%= currentYear %> <span><%= title %></span> | All rights reserved.
+        © <%= currentYear %> <span>ChurchLogo</span> | All rights reserved.
         Developed by
         <a href="https://zeroplace.co" target="_blank" rel="noreferrer">
           ZeroPlace
