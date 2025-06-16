@@ -66,13 +66,6 @@ router.get(
   OrderController.getOrderList
 );
 
-router.post(
-  "/order/submit",
-  auth(ENUM_USER_ROLE.USER, ENUM_USER_ROLE.SUPER_ADMIN),
-  validateRequest(OrderValidation.orderSubmissionZodSchema),
-  OrderController.orderSubmission
-);
-
 router.get(
   "/order/:id",
   auth(ENUM_USER_ROLE.USER, ENUM_USER_ROLE.SUPER_ADMIN),

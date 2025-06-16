@@ -121,63 +121,10 @@ const requirementSchema = z.object({
   answer: z.string(),
 });
 
-const orderSubmissionZodSchema = z.object({
-  body: z.object({
-    packageId: z.string({
-      required_error: "Package id is required",
-    }),
-
-    userId: z.string({
-      required_error: "User id is required",
-    }),
-
-    category: z.string({
-      required_error: "Category is required",
-    }),
-
-    additionalEmail: z.string({
-      required_error: "Additional email is required",
-    }),
-
-    requirements: z.array(requirementSchema, {
-      required_error: "Requirement is required",
-    }),
-
-    selectedAdditionalFeats: z.array(additionalItemSchema, {
-      required_error: "Selected additional feat is required",
-    }),
-
-    selectedAdditionalRevision: z.array(additionalItemSchema, {
-      required_error: "Selected additional revision is required",
-    }),
-
-    selectedAdditionalDeliveryTime: z.array(additionalItemSchema, {
-      required_error: "Selected additional delivery time is required",
-    }),
-
-    selectedProgrammingLang: z.array(additionalItemSchema).optional(),
-
-    preferredDesigns: z.array(imageSchema).optional(),
-
-    preferredColors: z.array(imageSchema).optional(),
-
-    referredImages: z.array(imageSchema).optional(),
-
-    contactDetails: z.object(contactDetailsSchema, {
-      required_error: "Contact detail is required",
-    }),
-
-    paymentIntentId: z.string({
-      required_error: "payment Intent Id is required",
-    }),
-  }),
-});
-
 export const OrderValidation = {
   submitCustomOffer,
   addReview,
   addExtraFeatures,
   updateOrderMessageAction,
   sendOrderMessageZodSchema,
-  orderSubmissionZodSchema,
 };

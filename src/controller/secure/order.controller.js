@@ -102,8 +102,9 @@ const getOrderUnreadMessages = catchAsync(async (req, res) => {
 
 const sendOrderMessage = catchAsync(async (req, res) => {
   const { ...message } = req.body;
+  const user = req.user;
 
-  const result = await OrderService.sendOrderMessage(message);
+  const result = await OrderService.sendOrderMessage(message, user);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -119,9 +120,12 @@ const getOrderMessages = catchAsync(async (req, res) => {
 
   const paginationOptions = pick(req.query, paginationFields);
 
+  const user = req.user;
+
   const result = await OrderService.getOrderMessages(
     filters,
-    paginationOptions
+    paginationOptions,
+    user
   );
 
   return sendResponse(res, {
@@ -166,21 +170,6 @@ const getOneOrder = catchAsync(async (req, res) => {
   });
 });
 
-const orderSubmission = catchAsync(async (req, res) => {
-  const userId = req.user.userId;
-  const { ...payload } = req.body;
-
-  const result = await OrderService.orderSubmission(payload, userId);
-
-  return sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Order has been submitted!",
-    meta: null,
-    data: result,
-  });
-});
-
 export const OrderController = {
   submitCustomOffer,
   addReview,
@@ -192,5 +181,4 @@ export const OrderController = {
   getOrderMessages,
   getOrderList,
   getOneOrder,
-  orderSubmission,
 };
