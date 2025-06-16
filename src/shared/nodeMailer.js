@@ -327,7 +327,7 @@ export const welcomeMessage = async (newUser) => {
     subject: "Welcome to ChurchLogo - Your Branding Partner!",
     html: `
       <div style="width: 100%; padding: 20px; font-size: 16px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="text-align: center; color: #4CAF50;">Welcome to ChurchLogo!</h2>
+        <h2 style="text-align: center; color: #13a800;">Welcome to ChurchLogo!</h2>
         <p>Dear ${newUser.firstName} ${newUser.lastName},</p>
         <p>We are thrilled to have you as part of the ChurchLogo family! Our mission is to help churches like yours bring their vision to life through exceptional branding and design. Whether you're looking for logos, banners, or other creative assets, we’re here to support you every step of the way.</p>
         
@@ -356,6 +356,59 @@ export const welcomeMessage = async (newUser) => {
         
         <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
         <p style="font-size: 12px; text-align: center; color: #888;">If you did not sign up for ChurchLogo, please contact us immediately.</p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return info;
+  } catch (error) {
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      "Internal Server Error"
+    );
+  }
+};
+
+export const sendMessageToUserEmail = async (user, message) => {
+  const mailOptions = {
+    from: `"ChurchLogo" <${config.support_mail_address}>`,
+    to: user.email,
+    subject: "You have a new message waiting at ChurchLogo",
+    html: `
+      <div style="width: 100%; padding: 20px; font-size: 16px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #13a800;">New Message from ChurchLogo</h2>
+        <p>Dear ${user.firstName} ${user.lastName},</p>
+        
+        <p>You have a new message waiting for you on ChurchLogo, but we noticed you're currently offline.</p>
+        
+        <p style="margin: 30px 0;">
+          <a href="${config.frontend_base_url}/dashboard/inbox/${message.conversationId._id}" 
+             style="background-color: #13a800; color: white; padding: 12px 24px; text-decoration: none; display: inline-block; border-radius: 4px; font-weight: bold;">
+            View Your Messages
+          </a>
+        </p>
+        
+        <p>If the button above doesn't work, copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #348edb;">${config.frontend_base_url}/dashboard/inbox/${message.conversationId._id}</p>
+        
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+        
+        <h3>Need Help?</h3>
+        <p>Contact our support team at 
+          <a href="mailto:${config.contact_mail_address}" 
+             style="color: #348edb; text-decoration: none; font-weight: bold;">
+            ${config.contact_mail_address}
+          </a>
+        </p>
+        
+        <p style="font-size: 14px; color: #777;">With blessings,</p>
+        <p style="font-size: 16px; color: #13a800;"><strong>The ChurchLogo Team</strong></p>
+        
+        <p style="font-size: 12px; color: #888;">
+          You're receiving this email because you have notifications enabled in your ChurchLogo account.
+        </p>
       </div>
     `,
   };

@@ -19,16 +19,13 @@ export const removeFromAdminsAndClientsOnlineList = (socketId) =>
   ));
 
 export const getUsersFromAdminsAndClientsOnlineList = (userId) => {
-  const filteredAdmins = adminsAndClientsOnlineList.filter(
+  const filteredOnlineUsers = adminsAndClientsOnlineList.filter(
     (u) => u.role === "super_admin" || u.role === "admin" || u.userId === userId
   );
 
-  const filteredSocketIds = filteredAdmins.map((u) => u.socketId);
-  return { filteredAdmins, filteredSocketIds };
-};
+  const filteredSocketIds = filteredOnlineUsers.map((u) => u.socketId);
 
-export const getAdminsAndClientsOnlineList = () => {
-  return adminsAndClientsOnlineList;
+  return { filteredOnlineUsers, filteredSocketIds };
 };
 
 // ............................................................... //

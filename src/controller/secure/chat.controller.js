@@ -55,7 +55,9 @@ const getUnreadMessages = catchAsync(async (req, res) => {
 const sendMessage = catchAsync(async (req, res) => {
   const { ...message } = req.body;
 
-  const result = await ChatService.sendMessage(message);
+  const user = req.user;
+
+  const result = await ChatService.sendMessage(message, user);
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -71,7 +73,13 @@ const getMessages = catchAsync(async (req, res) => {
 
   const paginationOptions = pick(req.query, paginationFields);
 
-  const result = await ChatService.getMessages(filters, paginationOptions);
+  const user = req.user;
+
+  const result = await ChatService.getMessages(
+    filters,
+    paginationOptions,
+    user
+  );
 
   return sendResponse(res, {
     statusCode: httpStatus.OK,

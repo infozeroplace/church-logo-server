@@ -10,6 +10,7 @@ import { PaginationHelpers } from "../../helper/paginationHelper.js";
 import { Conversation, Message } from "../../model/chat.model.js";
 import { Order } from "../../model/order.model.js";
 import User from "../../model/user.model.js";
+import { sendMessageToUserEmail } from "../../shared/nodeMailer.js";
 import {
   getUsersFromAdminsAndClientsOnlineList,
   getUsersFromAdminsOnlineList,
@@ -356,12 +357,15 @@ const sendMessage = async (payload) => {
       },
     ]);
 
-    const { filteredSocketIds } = getUsersFromAdminsAndClientsOnlineList(
-      creator?.userId
-    );
+    const { filteredOnlineUsers, filteredSocketIds } =
+      getUsersFromAdminsAndClientsOnlineList(creator?.userId);
 
     if (filteredSocketIds.length > 0) {
       global.io.to(filteredSocketIds).emit("adminClientMsgTransfer", message);
+    }
+
+    if (!filteredOnlineUsers.some((u) => u.userId === creator?.userId)) {
+      await sendMessageToUserEmail(creator, message);
     }
 
     return message;
@@ -419,12 +423,15 @@ const sendMessage = async (payload) => {
       },
     ]);
 
-    const { filteredSocketIds } = getUsersFromAdminsAndClientsOnlineList(
-      creator?.userId
-    );
+    const { filteredOnlineUsers, filteredSocketIds } =
+      getUsersFromAdminsAndClientsOnlineList(creator?.userId);
 
     if (filteredSocketIds.length > 0) {
       global.io.to(filteredSocketIds).emit("adminClientMsgTransfer", message);
+    }
+
+    if (!filteredOnlineUsers.some((u) => u.userId === creator?.userId)) {
+      await sendMessageToUserEmail(creator, message);
     }
 
     return message;

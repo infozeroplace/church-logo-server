@@ -12,6 +12,7 @@ import {
   OrderConversation,
   OrderMessage,
 } from "../../model/order.model.js";
+import { sendMessageToUserEmail } from "../../shared/nodeMailer.js";
 import { getUsersFromAdminsAndClientsOnlineList } from "../../utils/socket.js";
 
 const { ObjectId } = mongoose.Types;
@@ -130,7 +131,7 @@ const getOrderUnreadMessages = async (filters, paginationOptions) => {
     {
       $project: {
         __v: 0,
-      }
+      },
     },
     { $match: whereConditions },
     { $sort: sortConditions },
@@ -249,14 +250,17 @@ const sendOrderMessage = async (payload) => {
     },
   };
 
-  const { filteredSocketIds } = getUsersFromAdminsAndClientsOnlineList(
-    creator?.userId
-  );
+  const { filteredOnlineUsers, filteredSocketIds } =
+    getUsersFromAdminsAndClientsOnlineList(creator?.userId);
 
   if (filteredSocketIds.length > 0) {
     global.io
       .to(filteredSocketIds)
       .emit("adminClientOrderMsgTransfer", flattenedMessage);
+  }
+
+  if (!filteredOnlineUsers.some((u) => u.userId === creator?.userId)) {
+    await sendMessageToUserEmail(creator, flattenedMessage);
   }
 
   return flattenedMessage;
@@ -338,7 +342,7 @@ const getOrderMessages = async (filters, paginationOptions) => {
     {
       $project: {
         __v: 0,
-      }
+      },
     },
     {
       $match: { "conversation._id": new ObjectId(conversation) },

@@ -52,7 +52,7 @@ const updateCustomOfferMessageAction = async (payload) => {
   }
 
   return message;
-}
+};
 
 const getConversationId = async (userId) => {
   const user = await User.findOne({ userId });
@@ -191,7 +191,7 @@ const getUnreadMessages = async (filters, paginationOptions) => {
   };
 };
 
-const sendMessage = async (payload) => {
+const sendMessage = async (payload, user) => {
   const { UTC } = dateFormatter.getDates();
   const { text, conversationId, attachment } = payload;
 
@@ -205,6 +205,10 @@ const sendMessage = async (payload) => {
   } = await Conversation.findOne({
     _id: conversationId,
   }).populate(["creator", "participant"]);
+
+  if (creator.userId !== user.userId) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "UNAUTHORIZED ACCESS!");
+  }
 
   const result = await Message.create({
     isRead: false,
@@ -281,12 +285,16 @@ const sendMessage = async (payload) => {
   return message;
 };
 
-const getMessages = async (filters, paginationOptions) => {
+const getMessages = async (filters, paginationOptions, user) => {
   const { conversationId, ...filtersData } = filters;
 
   const { creator, participant } = await Conversation.findOne({
     _id: conversationId,
   }).populate(["creator", "participant"]);
+
+  if (creator.userId !== user.userId) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "UNAUTHORIZED ACCESS!");
+  }
 
   const pipelines = [
     {
