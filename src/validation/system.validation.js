@@ -135,6 +135,7 @@ const homeSettingsZodSchema = z.object({
     offerText: z.string({
       required_error: "Heading is required",
     }),
+    offerDeadline: z.string(),
     bannerTitle: z.string({
       required_error: "Content is required",
     }),
@@ -142,6 +143,11 @@ const homeSettingsZodSchema = z.object({
       required_error: "Last update is required",
     }),
     bannerImages: z.array(bannerImage),
+    offerBanner: z.array(
+      z.object({
+        url: z.string(),
+      })
+    ),
   }),
 });
 

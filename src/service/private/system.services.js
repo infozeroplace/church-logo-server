@@ -1081,12 +1081,22 @@ const updateHomeSettings = async (payload) => {
     if (!result)
       throw new ApiError(httpStatus.BAD_REQUEST, "Something went wrong!");
 
-    const filtered = existing?.homeSettings?.bannerImages.filter(
+    const filteredBannerImages = existing?.homeSettings?.bannerImages.filter(
       (item) => !payload.bannerImages.some((item2) => item2.url === item.url)
     );
 
-    if (filtered.length) {
-      for (const item of filtered) {
+    if (filteredBannerImages.length) {
+      for (const item of filteredBannerImages) {
+        await removeImage(item.url);
+      }
+    }
+
+    const filteredOfferBanner = existing?.homeSettings?.offerBanner.filter(
+      (item) => !payload.offerBanner.some((item2) => item2.url === item.url)
+    );
+
+    if (filteredOfferBanner.length) {
+      for (const item of filteredOfferBanner) {
         await removeImage(item.url);
       }
     }

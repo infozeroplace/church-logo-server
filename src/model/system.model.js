@@ -49,6 +49,8 @@ const SystemSchema = Schema(
     },
     homeSettings: {
       offerText: String,
+      offerDeadline: String,
+      offerBanner: Array,
       bannerTitle: String,
       bannerDescription: String,
       bannerImages: Array,
