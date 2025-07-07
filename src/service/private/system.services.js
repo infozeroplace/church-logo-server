@@ -168,7 +168,7 @@ const updateLogo = async (payload) => {
 const updatePackageOfferPercentages = async (payload) => {
   const { packageOfferPercentages } = payload;
 
-  const allowedPercentages = [10, 15, 20, 25, 30, 35, 40, 45, 50];
+  const allowedPercentages = [0, 10, 15, 20, 25, 30, 35, 40, 45, 50];
 
   if (!allowedPercentages.includes(packageOfferPercentages)) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Amount not accepted");
